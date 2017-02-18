@@ -331,9 +331,17 @@
 
 
 &i2c9 {
-	status = "disabled";
+	status = "okay";
 
-	/* Fan board */
+	nct7904@2d {
+		compatible = "nuvoton,nct7904";
+		reg = <0x2d>;
+	};
+
+	nct7904@2e {
+		compatible = "nuvoton,nct7904";
+		reg = <0x2e>;
+	};
 };
 
 &i2c10 {
