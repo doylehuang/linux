@@ -212,6 +212,11 @@
 		reg = <0x64>;
 	};
 
+	lm75@4a {
+		compatible = "national,lm75";
+		reg = <0x4a>;
+	};
+
 	/* Power sequencer UCD90160 PMBUS @64h
 	 * FRU AT24C64D @50h
 	 * RTC PCF8523 @68h
