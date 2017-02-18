@@ -191,6 +191,22 @@ static void __init do_zaius_setup(void)
 		gpiod_add_lookup_table(&fsi_gpio_lookup);
 	}
 
+	/* Set GPIOL5 for BMC Ready*/
+	reg = readl(AST_IO(AST_BASE_GPIO | 0x70));
+	reg &= ~(BIT(29));
+	writel(reg  , AST_IO(AST_BASE_GPIO | 0x70));
+	reg = readl(AST_IO(AST_BASE_GPIO | 0x74));
+	writel(reg | BIT(29) , AST_IO(AST_BASE_GPIO | 0x74));
+
+
+
+	/* EVT1 hacks */
+	if (board_rev == 0) {
+		/* Disable GPIO I, G/AB pulldowns due to weak driving buffers */
+		reg = readl(AST_IO(AST_BASE_SCU | 0x8C));
+		writel(reg | BIT(24) | BIT(22), AST_IO(AST_BASE_SCU | 0x8C));
+	}
+
 	/* Assert MAC2 PHY hardware reset */
 	/* Set pin low */
 	reg = readl(AST_IO(AST_BASE_GPIO | 0x00));
