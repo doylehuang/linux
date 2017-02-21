@@ -369,8 +369,19 @@
 };
 
 &gpio {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_gpioh_unbiased>;
+    rmii_sw1_sel_n {
+        gpio-hog;
+        gpios = <ASPEED_GPIO(A, 0) GPIO_ACTIVE_HIGH>;
+        output-low;
+        line-name = "rmii_sw1_sel_n";
+    };
+
+    rmii_sw2_sel_n {
+        gpio-hog;
+        gpios = <ASPEED_GPIO(A, 2) GPIO_ACTIVE_HIGH>;
+        output-low;
+        line-name = "rmii_sw2_sel_n";
+    };
 
 	line_iso_u146_en {
 		gpio-hog;
@@ -379,12 +390,12 @@
 		line-name = "iso_u164_en";
 	};
 
-	ncsi_mux_en_n {
-		gpio-hog;
-		gpios = <ASPEED_GPIO(P, 0) GPIO_ACTIVE_HIGH>;
-		output-low;
-		line-name = "ncsi_mux_en_n";
-	};
+    ncsi_mux_en_n {
+        gpio-hog;
+        gpios = <ASPEED_GPIO(P, 0) GPIO_ACTIVE_HIGH>;
+        output-low;
+        line-name = "ncsi_mux_en_n";
+    };
 
 	line_bmc_i2c2_sw_rst_n {
 		gpio-hog;
