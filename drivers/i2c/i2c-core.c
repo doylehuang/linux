@@ -2894,16 +2894,26 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
 				   char read_write, u8 command, int size,
 				   union i2c_smbus_data *data)
 {
-	/* So we need to generate a series of msgs. In the case of writing, we
-	  need to use only one message; when reading, we need two. We initialize
-	  most things with sane defaults, to keep the code below somewhat
-	  simpler. */
-	unsigned char msgbuf0[I2C_SMBUS_BLOCK_MAX+3];
-	unsigned char msgbuf1[I2C_SMBUS_BLOCK_MAX+2];
+	/*
+	 * So we need to generate a series of msgs. In the case of writing, we
+	 * need to use only one message; when reading, we need two. We
+	 * initialize most things with sane defaults, to keep the code below
+	 * somewhat simpler.
+	 *
+	 * Also, allocate 256 byte buffers as protection against suspect
+	 * hardware like the UCD90xx, where on occasion the returned block
+	 * length is 0xff[1].
+	 *
+	 * [1] https://github.com/openbmc/openbmc/issues/998
+	 */
+	unsigned char *msgbuf0 = kmalloc(0x100, GFP_KERNEL);
+	unsigned char *msgbuf1 = kmalloc(0x100, GFP_KERNEL);
 	int num = read_write == I2C_SMBUS_READ ? 2 : 1;
-	int i;
 	u8 partial_pec = 0;
+	s32 ret = 0;
 	int status;
+	int i;
+
 	struct i2c_msg msg[2] = {
 		{
 			.addr = addr,
@@ -2917,6 +2927,9 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
 			.buf = msgbuf1,
 		},
 	};
+
+	if (!(msgbuf0 && msgbuf1))
+		return -ENOMEM;
 
 	msgbuf0[0] = command;
 	switch (size) {
@@ -2970,7 +2983,8 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
 				dev_err(&adapter->dev,
 					"Invalid block write size %d\n",
 					data->block[0]);
-				return -EINVAL;
+				ret = -EINVAL;
+				goto out;
 			}
 			for (i = 1; i < msg[0].len; i++)
 				msgbuf0[i] = data->block[i-1];
@@ -2983,7 +2997,8 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
 			dev_err(&adapter->dev,
 				"Invalid block write size %d\n",
 				data->block[0]);
-			return -EINVAL;
+			ret = -EINVAL;
+			goto out;
 		}
 		msg[0].len = data->block[0] + 2;
 		for (i = 1; i < msg[0].len; i++)
@@ -3001,7 +3016,8 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
 				dev_err(&adapter->dev,
 					"Invalid block write size %d\n",
 					data->block[0]);
-				return -EINVAL;
+				ret = -EINVAL;
+				goto out;
 			}
 			for (i = 1; i <= data->block[0]; i++)
 				msgbuf0[i] = data->block[i];
@@ -3009,7 +3025,8 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
 		break;
 	default:
 		dev_err(&adapter->dev, "Unsupported transaction %d\n", size);
-		return -EOPNOTSUPP;
+		ret = -EOPNOTSUPP;
+		goto out;
 	}
 
 	i = ((flags & I2C_CLIENT_PEC) && size != I2C_SMBUS_QUICK
@@ -3028,17 +3045,23 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
 	}
 
 	status = i2c_transfer(adapter, msg, num);
-	if (status < 0)
-		return status;
+	if (status < 0) {
+		ret = status;
+		goto out;
+	}
 
 	/* Check PEC if last message is a read */
 	if (i && (msg[num-1].flags & I2C_M_RD)) {
 		status = i2c_smbus_check_pec(partial_pec, &msg[num-1]);
-		if (status < 0)
-			return status;
+		if (status < 0) {
+			ret = status;
+			goto out;
+		}
 	}
 
-	if (read_write == I2C_SMBUS_READ)
+	if (read_write == I2C_SMBUS_READ) {
+		size_t recvd;
+
 		switch (size) {
 		case I2C_SMBUS_BYTE:
 			data->byte = msgbuf0[0];
@@ -3056,11 +3079,27 @@ static s32 i2c_smbus_xfer_emulated(struct i2c_adapter *adapter, u16 addr,
 			break;
 		case I2C_SMBUS_BLOCK_DATA:
 		case I2C_SMBUS_BLOCK_PROC_CALL:
-			for (i = 0; i < msgbuf1[0] + 1; i++)
+			recvd = msgbuf1[0] + 1;
+
+			if (recvd > sizeof(*data)) {
+				dev_warn(&adapter->dev,
+						"SMBus block operation received invalid payload length of %zu\n",
+						recvd);
+				ret = -EIO;
+				goto out;
+			}
+
+			for (i = 0; i < recvd; i++)
 				data->block[i] = msgbuf1[i];
+
 			break;
 		}
-	return 0;
+	}
+out:
+	kfree(msgbuf0);
+	kfree(msgbuf1);
+
+	return ret;
 }
 
 /**
