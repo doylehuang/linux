@@ -27,42 +27,6 @@
 		};
 	};
 
-	onewire0 {
-		compatible = "w1-gpio";
-		gpios = <&gpio ASPEED_GPIO(H, 0) GPIO_ACTIVE_HIGH>;
-	};
-
-	onewire1 {
-		compatible = "w1-gpio";
-		gpios = <&gpio ASPEED_GPIO(H, 1) GPIO_ACTIVE_HIGH>;
-	};
-
-	onewire2 {
-		compatible = "w1-gpio";
-		gpios = <&gpio ASPEED_GPIO(H, 2) GPIO_ACTIVE_HIGH>;
-	};
-
-	onewire3 {
-		compatible = "w1-gpio";
-		gpios = <&gpio ASPEED_GPIO(H, 3) GPIO_ACTIVE_HIGH>;
-	};
-
-	gpio-keys {
-		compatible = "gpio-keys";
-
-		checkstop {
-			label = "checkstop";
-			gpios = <&gpio ASPEED_GPIO(F, 7) GPIO_ACTIVE_LOW>;
-			linux,code = <ASPEED_GPIO(F, 7)>;
-		};
-
-		pcie-e2b-present{
-			label = "pcie-e2b-present";
-			gpios = <&gpio ASPEED_GPIO(E, 7) GPIO_ACTIVE_LOW>;
-			linux,code = <ASPEED_GPIO(E, 7)>;
-		};
-	};
-
 	leds {
 		compatible = "gpio-leds";
 
