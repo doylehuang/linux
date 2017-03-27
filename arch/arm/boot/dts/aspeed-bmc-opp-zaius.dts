@@ -181,6 +181,7 @@
 	 * FRU AT24C64D @50h
 	 * RTC PCF8523 @68h
 	 * Clock buffer 9DBL04 @6dh
+	 * LM75 @4ah
 	 */
 };
 
