@@ -384,6 +384,13 @@
 		output-high;
 		line-name = "bmc_i2c5_sw_rst_n";
 	};
+
+	bmc_ready_n {
+		gpio-hog;
+		gpios = <ASPEED_GPIO(L, 5) GPIO_ACTIVE_HIGH>;
+		output-low;
+		line-name = "bmc_ready_n";
+	};
 };
 
 &vuart {
