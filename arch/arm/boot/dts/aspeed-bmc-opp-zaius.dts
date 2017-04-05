@@ -312,6 +312,15 @@
 	};
 
 	/* Fan board */
+	lm75@4a {
+		compatible = "national,lm75";
+		reg = <0x4a>;
+	};
+
+	lm75@4f {
+		compatible = "national,lm75";
+		reg = <0x4f>;
+	};
 };
 
 &i2c10 {
