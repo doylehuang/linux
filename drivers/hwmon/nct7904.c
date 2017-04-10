@@ -159,6 +159,7 @@ static int nct7904_read_fan(struct device *dev, u32 attr, int channel,
 	unsigned int cnt, rpm;
 	int ret;
 
+<<<<<<< HEAD
 	switch(attr) {
 	case hwmon_fan_input:
 		ret = nct7904_read_reg16(data, BANK_0,
@@ -175,6 +176,17 @@ static int nct7904_read_fan(struct device *dev, u32 attr, int channel,
 	default:
 		return -EOPNOTSUPP;
 	}
+=======
+	ret = nct7904_read_reg16(data, BANK_0, FANIN1_HV_REG + index * 2);
+	if (ret < 0)
+		return ret;
+	cnt = ((ret & 0xff00) >> 3) | (ret & 0x1f);
+	if (cnt == 0x1fff || cnt == 0)
+		rpm = 0;
+	else
+		rpm = 1350000 / cnt;
+	return sprintf(buf, "%u\n", rpm);
+>>>>>>> 9e0325c... fix show_pwm and show_fan cotnrol fail issue
 }
 
 static umode_t nct7904_fan_is_visible(const void *_data, u32 attr, int channel)
@@ -270,12 +282,48 @@ static umode_t nct7904_temp_is_visible(const void *_data, u32 attr, int channel)
 	return 0;
 }
 
+<<<<<<< HEAD
 static int nct7904_read_pwm(struct device *dev, u32 attr, int channel,
 			    long *val)
+=======
+/* "temp1_input" reserved for local temp */
+static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_tcpu, NULL, 0);
+static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_tcpu, NULL, 1);
+static SENSOR_DEVICE_ATTR(temp4_input, S_IRUGO, show_tcpu, NULL, 2);
+static SENSOR_DEVICE_ATTR(temp5_input, S_IRUGO, show_tcpu, NULL, 3);
+static SENSOR_DEVICE_ATTR(temp6_input, S_IRUGO, show_tcpu, NULL, 4);
+static SENSOR_DEVICE_ATTR(temp7_input, S_IRUGO, show_tcpu, NULL, 5);
+static SENSOR_DEVICE_ATTR(temp8_input, S_IRUGO, show_tcpu, NULL, 6);
+static SENSOR_DEVICE_ATTR(temp9_input, S_IRUGO, show_tcpu, NULL, 7);
+
+static struct attribute *nct7904_tcpu_attrs[] = {
+	&sensor_dev_attr_temp2_input.dev_attr.attr,
+	&sensor_dev_attr_temp3_input.dev_attr.attr,
+	&sensor_dev_attr_temp4_input.dev_attr.attr,
+	&sensor_dev_attr_temp5_input.dev_attr.attr,
+	&sensor_dev_attr_temp6_input.dev_attr.attr,
+	&sensor_dev_attr_temp7_input.dev_attr.attr,
+	&sensor_dev_attr_temp8_input.dev_attr.attr,
+	&sensor_dev_attr_temp9_input.dev_attr.attr,
+	NULL
+};
+
+static const struct attribute_group nct7904_tcpu_group = {
+	.attrs = nct7904_tcpu_attrs,
+	.is_visible = nct7904_tcpu_is_visible,
+};
+
+/* PWM ATTR */
+static int  record_pwm[20];
+
+static ssize_t store_pwm(struct device *dev, struct device_attribute *devattr,
+			 const char *buf, size_t count)
+>>>>>>> 9e0325c... fix show_pwm and show_fan cotnrol fail issue
 {
 	struct nct7904_data *data = dev_get_drvdata(dev);
 	int ret;
 
+<<<<<<< HEAD
 	switch(attr) {
 	case hwmon_pwm_input:
 		ret = nct7904_read_reg(data, BANK_3, FANCTL1_OUT_REG + channel);
@@ -293,13 +341,43 @@ static int nct7904_read_pwm(struct device *dev, u32 attr, int channel,
 	default:
 		return -EOPNOTSUPP;
 	}
+=======
+	if (kstrtoul(buf, 10, &val) < 0)
+		return -EINVAL;
+	if (val > 255)
+		return -EINVAL;
+    
+	ret = nct7904_write_reg(data, BANK_3, FANCTL1_OUT_REG + index, val);
+
+    if (ret == 0)
+        record_pwm[index] = (int) val;
+
+	return ret ? ret : count;
+>>>>>>> 9e0325c... fix show_pwm and show_fan cotnrol fail issue
 }
 
 static int nct7904_write_pwm(struct device *dev, u32 attr, int channel,
 			     long val)
 {
 	struct nct7904_data *data = dev_get_drvdata(dev);
+<<<<<<< HEAD
 	int ret;
+=======
+	int val;
+
+	val = nct7904_read_reg(data, BANK_3, FANCTL1_OUT_REG + index);
+    if ( val != record_pwm[index])
+    {
+        char st[10];
+        int count = 0;
+        val = record_pwm[index];
+	    count = sprintf(st, "%d\n", val);
+        store_pwm(dev, devattr, st, count);
+    }
+
+	if (val < 0)
+	    return val;
+>>>>>>> 9e0325c... fix show_pwm and show_fan cotnrol fail issue
 
 	switch(attr) {
 	case hwmon_pwm_input:
