@@ -205,6 +205,11 @@ static void __init do_sthelens_setup(void)
         reg = readl(AST_IO(AST_BASE_GPIO | 0x78));
         reg |= (1<<4);
         writel(reg, AST_IO(AST_BASE_GPIO | 0x78));
+         writel(reg, AST_IO(AST_BASE_GPIO | 0x78));
+        /* Config GPIO Reset Tolerant Register */
+        writel(0x00008000, AST_IO(AST_BASE_GPIO | 0x3C));
+        writel(0x000000FF, AST_IO(AST_BASE_GPIO | 0xAC));
+        writel(0x0000001C, AST_IO(AST_BASE_GPIO | 0xF4));
 }
 static void __init do_palmetto_setup(void)
 {
