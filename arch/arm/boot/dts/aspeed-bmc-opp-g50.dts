@@ -148,8 +148,8 @@
 			reg = <0x77>;
                         i2c@0 {
                                 reg = <0x0>;
-                                lm75@4c {
-                                          compatible = "national,lm75";
+                                tmp411@4c {
+                                          compatible = "ti,tmp411";
                                           reg = <0x4c>;
                                 };
                         };
