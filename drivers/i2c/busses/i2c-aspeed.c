@@ -31,6 +31,9 @@
 #include <linux/err.h>
 #include <linux/clk.h>
 
+#include <linux/proc_fs.h>
+#include <linux/seq_file.h>
+
 #include <linux/dma-mapping.h>
 
 #include <asm/irq.h>
@@ -274,6 +277,35 @@ struct ast_i2c_controller {
 	struct irq_domain	*irq_domain;
 };
 
+static char g_i2c_recovery_writeBuff[100] = "0\n0\n0";
+static int g_recovery_count = 0;
+
+static int i2c_recovery_proc_show(struct seq_file *m, void *v) {
+	seq_printf(m, "%s",g_i2c_recovery_writeBuff);
+	return 0;
+}
+
+static int i2c_recovery_proc_open(struct inode *inode, struct  file *file) {
+	return single_open(file, i2c_recovery_proc_show, NULL);
+}
+
+static const struct file_operations i2c_recovery_proc_fops = {
+	.owner = THIS_MODULE,
+	.open = i2c_recovery_proc_open,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static int __init i2c_recovery_proc_init(void) {
+	proc_create("i2c_recovery_proc", 0644, NULL, &i2c_recovery_proc_fops);
+	return 0;
+}
+
+static void __exit i2c_recovery_proc_exit(void) {
+	remove_proc_entry("i2c_recovery_proc", NULL);
+}
+
 static inline void ast_i2c_write(struct ast_i2c_bus *bus, u32 val, u32 reg)
 {
 	writel(val, bus->base + reg);
@@ -435,6 +467,9 @@ static u8 ast_i2c_bus_error_recover(struct ast_i2c_bus *bus)
 		return -1;
 	}
 	dev_dbg(bus->dev, "Recovery successfully\n");
+
+	g_recovery_count++;
+	sprintf(g_i2c_recovery_writeBuff, "%d\n0x%2X\n%d",bus->adap.nr,sts,g_recovery_count);
 	return 0;
 }
 
@@ -1097,6 +1132,8 @@ static struct platform_driver i2c_ast_driver = {
 };
 
 module_platform_driver(i2c_ast_driver);
+module_init(i2c_recovery_proc_init);
+module_exit(i2c_recovery_proc_exit);
 
 MODULE_AUTHOR("Ryan Chen <ryan_chen@aspeedtech.com>");
 MODULE_DESCRIPTION("ASPEED AST I2C Bus Driver");
