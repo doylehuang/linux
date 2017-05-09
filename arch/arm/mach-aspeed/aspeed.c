@@ -209,7 +209,7 @@ static void __init do_sthelens_setup(void)
         /* Config GPIO Reset Tolerant Register */
         writel(0x00008000, AST_IO(AST_BASE_GPIO | 0x3C));
         writel(0x000000FF, AST_IO(AST_BASE_GPIO | 0xAC));
-        writel(0x0000001C, AST_IO(AST_BASE_GPIO | 0xF4));
+        writel(0x00000018, AST_IO(AST_BASE_GPIO | 0xFC));
 }
 static void __init do_palmetto_setup(void)
 {
