@@ -298,12 +298,12 @@ static const struct file_operations i2c_recovery_proc_fops = {
 };
 
 static int __init i2c_recovery_proc_init(void) {
-	proc_create("i2c_recovery_proc", 0644, NULL, &i2c_recovery_proc_fops);
+	proc_create("i2c_recovery", 0644, NULL, &i2c_recovery_proc_fops);
 	return 0;
 }
 
 static void __exit i2c_recovery_proc_exit(void) {
-	remove_proc_entry("i2c_recovery_proc", NULL);
+	remove_proc_entry("i2c_recovery", NULL);
 }
 
 static inline void ast_i2c_write(struct ast_i2c_bus *bus, u32 val, u32 reg)
@@ -717,9 +717,11 @@ static bool ast_i2c_master_irq(struct ast_i2c_bus *bus)
 	if (sts & AST_I2CD_INTR_NORMAL_STOP)
 		bus->cmd_pending &= ~AST_I2CD_M_STOP_CMD;
 
-	if (sts & AST_I2CD_INTR_BUS_RECOVER_DONE)
+	if (sts & AST_I2CD_INTR_BUS_RECOVER_DONE){
+		g_recovery_count++;
+		sprintf(g_i2c_recovery_writeBuff, "%d\n0x%2X\n%d",bus->adap.nr,sts,g_recovery_count);
 		bus->cmd_pending &= ~AST_I2CD_BUS_RECOVER_CMD_EN;
-
+	}
 	/* if we've seen an error, notify our waiter */
 	if (bus->cmd_err) {
 		complete(&bus->cmd_complete);
