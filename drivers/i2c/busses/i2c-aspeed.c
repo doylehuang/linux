@@ -277,28 +277,160 @@ struct ast_i2c_controller {
 	struct irq_domain	*irq_domain;
 };
 
-static char g_i2c_recovery_writeBuff[100] = "0\n0\n0";
-static int g_recovery_count = 0;
+static char g_i2c_recovery_writeBuff[8][100];
+static int g_recovery_count[8];
 
-static int i2c_recovery_proc_show(struct seq_file *m, void *v) {
-	seq_printf(m, "%s",g_i2c_recovery_writeBuff);
+static int i2c_recovery_proc_show0(struct seq_file *m, void *v) {
+	seq_printf(m, "%s",g_i2c_recovery_writeBuff[0]);
 	return 0;
 }
 
-static int i2c_recovery_proc_open(struct inode *inode, struct  file *file) {
-	return single_open(file, i2c_recovery_proc_show, NULL);
+static int i2c_recovery_proc_show1(struct seq_file *m, void *v) {
+	seq_printf(m, "%s",g_i2c_recovery_writeBuff[1]);
+	return 0;
 }
 
-static const struct file_operations i2c_recovery_proc_fops = {
+static int i2c_recovery_proc_show2(struct seq_file *m, void *v) {
+	seq_printf(m, "%s",g_i2c_recovery_writeBuff[2]);
+	return 0;
+}
+
+static int i2c_recovery_proc_show3(struct seq_file *m, void *v) {
+	seq_printf(m, "%s",g_i2c_recovery_writeBuff[3]);
+	return 0;
+}
+
+static int i2c_recovery_proc_show4(struct seq_file *m, void *v) {
+	seq_printf(m, "%s",g_i2c_recovery_writeBuff[4]);
+	return 0;
+}
+
+static int i2c_recovery_proc_show5(struct seq_file *m, void *v) {
+	seq_printf(m, "%s",g_i2c_recovery_writeBuff[5]);
+	return 0;
+}
+
+static int i2c_recovery_proc_show6(struct seq_file *m, void *v) {
+	seq_printf(m, "%s",g_i2c_recovery_writeBuff[6]);
+	return 0;
+}
+
+static int i2c_recovery_proc_show7(struct seq_file *m, void *v) {
+	seq_printf(m, "%s",g_i2c_recovery_writeBuff[7]);
+	return 0;
+}
+
+static int i2c_recovery_proc_open0(struct inode *inode, struct  file *file) {
+	return single_open(file, i2c_recovery_proc_show0, NULL);
+}
+
+static int i2c_recovery_proc_open1(struct inode *inode, struct  file *file) {
+	return single_open(file, i2c_recovery_proc_show1, NULL);
+}
+
+static int i2c_recovery_proc_open2(struct inode *inode, struct  file *file) {
+	return single_open(file, i2c_recovery_proc_show2, NULL);
+}
+
+static int i2c_recovery_proc_open3(struct inode *inode, struct  file *file) {
+	return single_open(file, i2c_recovery_proc_show3, NULL);
+}
+
+static int i2c_recovery_proc_open4(struct inode *inode, struct  file *file) {
+	return single_open(file, i2c_recovery_proc_show4, NULL);
+}
+
+static int i2c_recovery_proc_open5(struct inode *inode, struct  file *file) {
+	return single_open(file, i2c_recovery_proc_show5, NULL);
+}
+
+static int i2c_recovery_proc_open6(struct inode *inode, struct  file *file) {
+	return single_open(file, i2c_recovery_proc_show6, NULL);
+}
+
+static int i2c_recovery_proc_open7(struct inode *inode, struct  file *file) {
+	return single_open(file, i2c_recovery_proc_show7, NULL);
+}
+
+static const struct file_operations i2c_recovery_proc_fops0 = {
 	.owner = THIS_MODULE,
-	.open = i2c_recovery_proc_open,
+	.open = i2c_recovery_proc_open0,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+static const struct file_operations i2c_recovery_proc_fops1 = {
+	.owner = THIS_MODULE,
+	.open = i2c_recovery_proc_open1,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static const struct file_operations i2c_recovery_proc_fops2 = {
+	.owner = THIS_MODULE,
+	.open = i2c_recovery_proc_open2,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static const struct file_operations i2c_recovery_proc_fops3 = {
+	.owner = THIS_MODULE,
+	.open = i2c_recovery_proc_open3,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static const struct file_operations i2c_recovery_proc_fops4 = {
+	.owner = THIS_MODULE,
+	.open = i2c_recovery_proc_open4,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static const struct file_operations i2c_recovery_proc_fops5 = {
+	.owner = THIS_MODULE,
+	.open = i2c_recovery_proc_open5,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static const struct file_operations i2c_recovery_proc_fops6 = {
+	.owner = THIS_MODULE,
+	.open = i2c_recovery_proc_open6,
+	.read = seq_read,
+	.llseek = seq_lseek,
+	.release = single_release,
+};
+
+static const struct file_operations i2c_recovery_proc_fops7 = {
+	.owner = THIS_MODULE,
+	.open = i2c_recovery_proc_open7,
 	.read = seq_read,
 	.llseek = seq_lseek,
 	.release = single_release,
 };
 
 static int __init i2c_recovery_proc_init(void) {
-	proc_create("i2c_recovery", 0644, NULL, &i2c_recovery_proc_fops);
+    int i;
+    for (i=0;i<8;i++)
+    {
+        strcpy(g_i2c_recovery_writeBuff[i], "0\n0\n0\n");
+        g_recovery_count[i] = 0;
+    }
+
+    proc_create("i2c_recovery_bus0", 0644, NULL, &i2c_recovery_proc_fops0);
+    proc_create("i2c_recovery_bus1", 0644, NULL, &i2c_recovery_proc_fops1);
+    proc_create("i2c_recovery_bus2", 0644, NULL, &i2c_recovery_proc_fops2);
+    proc_create("i2c_recovery_bus3", 0644, NULL, &i2c_recovery_proc_fops3);
+    proc_create("i2c_recovery_bus4", 0644, NULL, &i2c_recovery_proc_fops4);
+    proc_create("i2c_recovery_bus5", 0644, NULL, &i2c_recovery_proc_fops5);
+    proc_create("i2c_recovery_bus6", 0644, NULL, &i2c_recovery_proc_fops6);
+    proc_create("i2c_recovery_bus7", 0644, NULL, &i2c_recovery_proc_fops7);
 	return 0;
 }
 
@@ -467,9 +599,12 @@ static u8 ast_i2c_bus_error_recover(struct ast_i2c_bus *bus)
 		return -1;
 	}
 	dev_dbg(bus->dev, "Recovery successfully\n");
-
-	g_recovery_count++;
-	sprintf(g_i2c_recovery_writeBuff, "%d\n0x%2X\n%d",bus->adap.nr,sts,g_recovery_count);
+    if (bus->adap.nr<8 && bus->adap.nr>0){
+        g_recovery_count[bus->adap.nr]++;
+        sprintf(g_i2c_recovery_writeBuff[bus->adap.nr], "%d\n0x%2X\n%d",bus->adap.nr,sts,g_recovery_count[bus->adap.nr]);
+    }
+	else
+        dev_dbg(bus->dev, "Not support bus ID\n");
 	return 0;
 }
 
@@ -717,11 +852,17 @@ static bool ast_i2c_master_irq(struct ast_i2c_bus *bus)
 	if (sts & AST_I2CD_INTR_NORMAL_STOP)
 		bus->cmd_pending &= ~AST_I2CD_M_STOP_CMD;
 
-	if (sts & AST_I2CD_INTR_BUS_RECOVER_DONE){
-		g_recovery_count++;
-		sprintf(g_i2c_recovery_writeBuff, "%d\n0x%2X\n%d",bus->adap.nr,sts,g_recovery_count);
-		bus->cmd_pending &= ~AST_I2CD_BUS_RECOVER_CMD_EN;
-	}
+    if (sts & AST_I2CD_INTR_BUS_RECOVER_DONE){
+        if (bus->adap.nr<8 && bus->adap.nr>0){
+            g_recovery_count[bus->adap.nr]++;
+            sprintf(g_i2c_recovery_writeBuff[bus->adap.nr], "%d\n0x%2X\n%d\n",bus->adap.nr,sts,g_recovery_count[bus->adap.nr]); 
+        }
+        else
+            dev_dbg(bus->dev, "Not support bus ID\n");
+        
+        bus->cmd_pending &= ~AST_I2CD_BUS_RECOVER_CMD_EN;
+    }
+
 	/* if we've seen an error, notify our waiter */
 	if (bus->cmd_err) {
 		complete(&bus->cmd_complete);
