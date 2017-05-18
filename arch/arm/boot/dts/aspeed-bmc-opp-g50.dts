@@ -144,7 +144,7 @@
 			};
 	};
 	i2c-switch@77 {
-			compatible = "nxp,pca9548";
+			compatible = "nxp,pca9546";
 			reg = <0x77>;
                         i2c@0 {
                                 reg = <0x0>;
