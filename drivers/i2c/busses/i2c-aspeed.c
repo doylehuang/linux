@@ -599,7 +599,7 @@ static u8 ast_i2c_bus_error_recover(struct ast_i2c_bus *bus)
 		return -1;
 	}
 	dev_dbg(bus->dev, "Recovery successfully\n");
-    if (bus->adap.nr<8 && bus->adap.nr>0){
+    if (bus->adap.nr<8 && bus->adap.nr>=0){
         g_recovery_count[bus->adap.nr]++;
         sprintf(g_i2c_recovery_writeBuff[bus->adap.nr], "%d\n0x%2X\n%d",bus->adap.nr,sts,g_recovery_count[bus->adap.nr]);
     }
@@ -853,13 +853,13 @@ static bool ast_i2c_master_irq(struct ast_i2c_bus *bus)
 		bus->cmd_pending &= ~AST_I2CD_M_STOP_CMD;
 
     if (sts & AST_I2CD_INTR_BUS_RECOVER_DONE){
-        if (bus->adap.nr<8 && bus->adap.nr>0){
+        if (bus->adap.nr<8 && bus->adap.nr>=0){
             g_recovery_count[bus->adap.nr]++;
-            sprintf(g_i2c_recovery_writeBuff[bus->adap.nr], "%d\n0x%2X\n%d\n",bus->adap.nr,sts,g_recovery_count[bus->adap.nr]); 
+            sprintf(g_i2c_recovery_writeBuff[bus->adap.nr], "%d\n0x%2X\n%d\n",bus->adap.nr,sts,g_recovery_count[bus->adap.nr]);
         }
         else
             dev_dbg(bus->dev, "Not support bus ID\n");
-        
+
         bus->cmd_pending &= ~AST_I2CD_BUS_RECOVER_CMD_EN;
     }
 
