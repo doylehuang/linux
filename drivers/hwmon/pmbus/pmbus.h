@@ -383,6 +383,7 @@ struct pmbus_driver_info {
 	/* Regulator functionality, if supported by this chip driver. */
 	int num_regulators;
 	const struct regulator_desc *reg_desc;
+	struct device_attribute **pdev_attrs;
 };
 
 /* Regulator ops */
