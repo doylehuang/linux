@@ -1865,7 +1865,7 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
 	struct device *dev = &client->dev;
 	const struct pmbus_platform_data *pdata = dev_get_platdata(dev);
 	struct pmbus_data *data;
-	int ret;
+	int ret, i;
 
 	if (!info)
 		return -ENODEV;
@@ -1894,7 +1894,11 @@ int pmbus_do_probe(struct i2c_client *client, const struct i2c_device_id *id,
 	ret = pmbus_find_attributes(client, data);
 	if (ret)
 		goto out_kfree;
-
+	if (info->pdev_attrs) {
+		for (i = 0; info->pdev_attrs[i]; i++) {
+			pmbus_add_attribute(data, &info->pdev_attrs[i]->attr);
+		}
+	}
 	/*
 	 * If there are no attributes, something is wrong.
 	 * Bail out instead of trying to register nothing.

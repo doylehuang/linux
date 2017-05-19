@@ -26,7 +26,79 @@
 #include <linux/mutex.h>
 #include <linux/i2c.h>
 #include "pmbus.h"
+static ssize_t pmbus_show_operation(struct device *dev,
+				struct device_attribute *da, char *buf)
+{
+	int ret;
+	struct i2c_client *client = to_i2c_client(dev->parent);
+	ret = i2c_smbus_write_byte_data(client, PMBUS_PAGE, 0x0);
+	if (ret < 0)
+		return -1;
+	ret = i2c_smbus_read_byte_data(client, PMBUS_OPERATION);
+	return snprintf(buf, PAGE_SIZE, "0x%x\n", ret);
+}
+static ssize_t pmbus_store_operation(struct device *dev,
+				struct device_attribute *da, char *buf, size_t count)
+{
+	int ret=0;
+	int value;
+	struct i2c_client *client = to_i2c_client(dev->parent);
+	ret = i2c_smbus_write_byte_data(client, PMBUS_PAGE, 0x0);
+	if (ret < 0)
+		return -1;
+	sscanf(buf, "%xu", &value);
+	ret = i2c_smbus_write_byte_data(client, PMBUS_OPERATION, (u8)value);
+	return count;
+}
+static struct device_attribute pmbus_operation_attr = __ATTR(pmbus_operation, S_IRUGO | S_IWUSR, pmbus_show_operation, pmbus_store_operation);
 
+static ssize_t pmbus_store_clear_fault(struct device *dev,
+				struct device_attribute *da, char *buf, size_t count)
+{
+	struct i2c_client *client = to_i2c_client(dev->parent);
+	pmbus_clear_faults(client);
+	return count;
+}
+static struct device_attribute pmbus_clear_fault_attr = __ATTR(pmbus_clear_fault, S_IRUGO | S_IWUSR, NULL, pmbus_store_clear_fault);
+
+static ssize_t pmbus_show_capability(struct device *dev,
+				struct device_attribute *da, char *buf)
+{
+	int ret;
+	struct i2c_client *client = to_i2c_client(dev->parent);
+	ret = i2c_smbus_write_byte_data(client, PMBUS_PAGE, 0x0);
+	if (ret < 0)
+		return -1;
+	ret = i2c_smbus_read_byte_data(client, PMBUS_CAPABILITY);
+	return snprintf(buf, PAGE_SIZE, "0x%x\n", ret);
+}
+static struct device_attribute pmbus_capability_attr = __ATTR(pmbus_capability, S_IRUGO | S_IWUSR, pmbus_show_capability, NULL);
+
+static ssize_t pmbus_show_status_word(struct device *dev,
+				struct device_attribute *da, char *buf)
+{
+	int ret;
+	struct i2c_client *client = to_i2c_client(dev->parent);
+	ret = i2c_smbus_write_byte_data(client, PMBUS_PAGE, 0x0);
+	if (ret < 0)
+		return -1;
+	ret = i2c_smbus_read_word_data(client, PMBUS_STATUS_WORD);
+	return snprintf(buf, PAGE_SIZE, "0x%x\n", ret);
+}
+static struct device_attribute pmbus_status_word_attr = __ATTR(pmbus_status_word, S_IRUGO | S_IWUSR, pmbus_show_status_word, NULL);
+
+static struct device_attribute *dev_attrs[] = {
+	&pmbus_operation_attr,
+	&pmbus_clear_fault_attr,
+	&pmbus_capability_attr,
+	&pmbus_status_word_attr,
+	NULL
+};
+static void pmbus_add_attr(struct i2c_client *client,
+				     struct pmbus_driver_info *info)
+{
+	info->pdev_attrs = dev_attrs;
+}
 /*
  * Find sensor groups and status registers on each page.
  */
@@ -159,6 +231,7 @@ static int pmbus_identify(struct i2c_client *client,
 
 	/* Try to find sensor groups  */
 	pmbus_find_sensor_groups(client, info);
+	pmbus_add_attr(client, info);
 abort:
 	return ret;
 }
