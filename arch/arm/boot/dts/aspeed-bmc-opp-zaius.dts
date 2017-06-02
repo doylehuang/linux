@@ -153,6 +153,11 @@
 	pinctrl-0 = <&pinctrl_rgmii2_default &pinctrl_mdio2_default>;
 };
 
+&usb   {
+       status = "okay";
+};
+
+
 &i2c0 {
 	status = "okay";
 

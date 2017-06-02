@@ -118,6 +118,9 @@ static int uhci_hcd_platform_probe(struct platform_device *pdev)
 				 "Enabled Aspeed implementation workarounds\n");
 		}
 	}
+	uhci->rh_numports = 2;
+	uhci->is_aspeed = 1;
+	printk("Ken Kernel Debug\n");
 	ret = usb_add_hcd(hcd, pdev->resource[1].start, IRQF_SHARED);
 	if (ret)
 		goto err_rmr;

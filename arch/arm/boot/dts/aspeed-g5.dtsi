@@ -138,6 +138,13 @@
 			status = "disabled";
 		};
 
+                usb:  uhci@1e6b0000 {
+                        compatible = "platform-uhci";
+                        reg = <0x1e6b0000 0x1000>;
+                        interrupts = <14>;
+			status = "disabled";
+                };
+
 		apb {
 			compatible = "simple-bus";
 			#address-cells = <1>;

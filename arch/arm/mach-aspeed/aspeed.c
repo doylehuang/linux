@@ -197,6 +197,12 @@ static void __init do_zaius_setup(void)
 	writel(reg  , AST_IO(AST_BASE_GPIO | 0x70));
 	reg = readl(AST_IO(AST_BASE_GPIO | 0x74));
 	writel(reg | BIT(29) , AST_IO(AST_BASE_GPIO | 0x74));
+        /* Enable USB power*/
+        reg = readl(AST_IO(AST_BASE_GPIO | 0x7c));
+        writel(reg | BIT(14) , AST_IO(AST_BASE_GPIO | 0x7c));
+
+        reg = readl(AST_IO(AST_BASE_GPIO | 0x78));
+        writel(reg | BIT(14) , AST_IO(AST_BASE_GPIO | 0x78));
 
 
 
@@ -218,6 +224,60 @@ static void __init do_zaius_setup(void)
 	/* Set pin high */
 	reg = readl(AST_IO(AST_BASE_GPIO | 0x00));
 	writel(reg | phy_reset_mask, AST_IO(AST_BASE_GPIO | 0x00));
+	
+	/* Disable default behavior of UART1 being held in reset by LPCRST#.
+	 * By releasing UART1 from being controlled by LPC reset, it becomes
+	 * immediately available regardless of the host being up.
+	 */
+	reg = readl(AST_IO(AST_BASE_LPC | 0x98));
+	/* Clear "Enable UART1 reset source from LPC" */
+	writel(reg & ~BIT(4), AST_IO(AST_BASE_LPC | 0x98));
+
+        /* USB HOST port 1 */
+        reg = readl(AST_IO(AST_BASE_SCU | 0x90));
+        writel(reg | BIT(29), AST_IO(AST_BASE_SCU | 0x90));
+
+
+        reg = readl(AST_IO(AST_BASE_SCU | 0x04));
+        writel(reg | BIT(14), AST_IO(AST_BASE_SCU | 0x04));
+
+
+        reg = readl(AST_IO(AST_BASE_SCU | 0x0C));
+        writel(reg | BIT(14), AST_IO(AST_BASE_SCU | 0x0C));
+	mdelay(10);
+
+        reg = readl(AST_IO(AST_BASE_SCU | 0x04));
+        writel(reg & ~BIT(14), AST_IO(AST_BASE_SCU | 0x04));
+
+        /* USB HOST port 1 */
+        reg = readl(AST_IO(AST_BASE_SCU | 0x94));
+        writel(reg & ~BIT(13), AST_IO(AST_BASE_SCU | 0x94));
+
+        reg = readl(AST_IO(AST_BASE_SCU | 0x94));
+        writel(reg | BIT(14), AST_IO(AST_BASE_SCU | 0x94));
+
+        reg = readl(AST_IO(AST_BASE_SCU | 0x04));
+        writel(reg | BIT(3), AST_IO(AST_BASE_SCU | 0x04));
+
+
+        reg = readl(AST_IO(AST_BASE_SCU | 0x0C));
+        writel(reg & ~BIT(7), AST_IO(AST_BASE_SCU | 0x0C));
+        mdelay(10);
+
+        reg = readl(AST_IO(AST_BASE_SCU | 0x04));
+        writel(reg & ~BIT(3), AST_IO(AST_BASE_SCU | 0x04));
+
+        /* USB HOST port 1 */
+        reg = readl(AST_IO(AST_BASE_SCU | 0x04));
+        writel(reg | BIT(15), AST_IO(AST_BASE_SCU | 0x04));
+
+
+        reg = readl(AST_IO(AST_BASE_SCU | 0x0C));
+        writel(reg & ~BIT(9), AST_IO(AST_BASE_SCU | 0x0C));
+        mdelay(10);
+
+        reg = readl(AST_IO(AST_BASE_SCU | 0x04));
+        writel(reg & ~BIT(15), AST_IO(AST_BASE_SCU | 0x04));
 }
 
 static void __init do_witherspoon_setup(void)
