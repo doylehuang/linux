@@ -929,7 +929,9 @@ static int ast_i2c_do_msgs_xfer(struct ast_i2c_bus *bus,
 		ast_i2c_do_byte_xfer(bus);
 		spin_unlock_irqrestore(&bus->cmd_lock, flags);
 
-		ret = wait_for_completion_interruptible_timeout(
+		/* should not do context switch for master-write and read */
+		//ret = wait_for_completion_interruptible_timeout(
+		ret = wait_for_completion_timeout(
 					&bus->cmd_complete,
 					bus->adap.timeout * HZ);
 
