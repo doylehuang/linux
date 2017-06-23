@@ -142,6 +142,18 @@
 			};
 			i2c@6 {
         			reg = <0x06>;
+					GPIO-MUX5@71 {
+					compatible = "nxp,pca9538";
+					reg = <0x71>;
+					};
+					GPIO-MUX5@72 {
+					compatible = "nxp,pca9538";
+					reg = <0x72>;
+					};
+					GPIO-MUX5@73 {
+					compatible = "nxp,pca9538";
+					reg = <0x73>;
+					};
 			};
 			i2c@7 {
         			reg = <0x07>;
