@@ -72,6 +72,23 @@
 
 &i2c0{
 	status = "okay";
+	lm75@49 {
+			compatible = "national,lm75";
+			reg = <0x49>;
+	};
+	lm75@4a {
+			compatible = "national,lm75";
+			reg = <0x4a>;
+	};
+	lm75@4b {
+			compatible = "national,lm75";
+			reg = <0x4b>;
+	};
+    eeprom@50 {
+            compatible = "atmel,24c32";
+            reg = <0x50>;
+            pagesize = <32>;
+    };
 };
 &i2c1{
 	status = "okay";
@@ -107,9 +124,9 @@
 			};
 			i2c@5 {
         			reg = <0x05>;
-        			lm75@48 {
+                        lm75@37 {
 	              		compatible = "national,lm75";
-	               		reg = <0x48>;
+                        reg = <0x37>;
         			};
 					lm75@49 {
 						compatible = "national,lm75";
@@ -142,33 +159,25 @@
 			};
 			i2c@6 {
         			reg = <0x06>;
-					GPIO-MUX5@71 {
-					compatible = "nxp,pca9538";
-					reg = <0x71>;
+					GPIO-MUX3@74 {
+					compatible = "nxp,pca9539";
+					reg = <0x74>;
 					};
-					GPIO-MUX5@72 {
-					compatible = "nxp,pca9538";
-					reg = <0x72>;
-					};
-					GPIO-MUX5@73 {
-					compatible = "nxp,pca9538";
-					reg = <0x73>;
+					GPIO-MUX4@77 {
+					compatible = "nxp,pca9539";
+					reg = <0x77>;
 					};
 			};
 			i2c@7 {
         			reg = <0x07>;
 			};
 	};
-	i2c-switch@77 {
+	i2c-switch@75 {
 			compatible = "nxp,pca9546";
-			reg = <0x77>;
-                        i2c@0 {
-                                reg = <0x0>;
-                                tmp411@4c {
-                                          compatible = "ti,tmp411";
-                                          reg = <0x4c>;
-                                };
-                        };
+			reg = <0x75>;
+            i2c@0 {
+                     reg = <0x0>;
+            };
 			i2c@1 {
         			#address-cells = <1>;
         			#size-cells = <0>;
@@ -176,26 +185,26 @@
 
 			/* PCAL9538 */
 			};
-                        i2c@2 {
-                                reg = <0x2>;
-                                i2c-switch@73 {
-                                    /* M.2 mux switch */
-                                    compatible = "nxp,pca9546";
-                                    reg = <0x73>;
-                                    i2c@0 {
-                                            reg = <0x0>;
-                                    };
-                                    i2c@1 {
-                                            reg = <0x1>;
-                                    };
-                                    i2c@2 {
-                                            reg = <0x2>;
-                                    };
-                                    i2c@3 {
-                                            reg = <0x3>;
-                                    };
-                                };
-                        };
+            i2c@2 {
+                    reg = <0x2>;
+                    i2c-switch@73 {
+                            /* M.2 mux switch */
+                            compatible = "nxp,pca9546";
+                            reg = <0x73>;
+                            i2c@0 {
+                                    reg = <0x0>;
+                            };
+                            i2c@1 {
+                                    reg = <0x1>;
+                            };
+                            i2c@2 {
+                                    reg = <0x2>;
+                            };
+                            i2c@3 {
+                                    reg = <0x3>;
+                            };
+                    };
+            };
 			i2c@3 {
         			#address-cells = <1>;
         			#size-cells = <0>;
@@ -207,6 +216,34 @@
 };
 &i2c3{
 	status = "okay";
+	i2c-switch@70 {
+		compatible = "nxp,pca9548";
+		reg = <0x70>;
+		i2c@0 {
+			reg = <0x0>;
+		};
+		i2c@1 {
+			reg = <0x1>;
+		};
+		i2c@2 {
+			reg = <0x2>;
+		};
+		i2c@3 {
+			reg = <0x3>;
+		};
+		i2c@4 {
+			reg = <0x4>;
+		};
+		i2c@5 {
+			reg = <0x5>;
+		};
+		i2c@6 {
+			reg = <0x6>;
+		};
+		i2c@7 {
+			reg = <0x7>;
+		};
+	};
 	GPIO-MUX1@74 {
 		compatible = "nxp,pca9539";
 		reg = <0x74>;
@@ -214,14 +251,6 @@
 	GPIO-MUX2@75 {
 		compatible = "nxp,pca9539";
 		reg = <0x75>;
-	};
-	GPIO-MUX3@76 {
-		compatible = "nxp,pca9539";
-		reg = <0x76>;
-	};
-	GPIO-MUX4@77 {
-		compatible = "nxp,pca9539";
-		reg = <0x77>;
 	};
 };
 &i2c4{
