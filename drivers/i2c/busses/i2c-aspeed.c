@@ -521,7 +521,7 @@ static int ast_i2c_wait_bus_not_busy(struct ast_i2c_bus *bus)
 	}
 
 	//i2c recovery has been executed once , and after recovery , i2c can be not busy
-	if ((g_i2c_recovery_writeBuff[bus->adap.nr]&E_I2C_RECOVERY_PERFORMED) == E_I2C_RECOVERY_PERFORMED) && timeout>0)
+	if (((g_i2c_recovery_writeBuff[bus->adap.nr]&E_I2C_RECOVERY_PERFORMED) == E_I2C_RECOVERY_PERFORMED) && timeout>0)
 		g_i2c_recovery_writeBuff[bus->adap.nr] |= E_I2C_RECOVERY_DONE;
 
 	return timeout <= 0 ? EAGAIN : 0;
