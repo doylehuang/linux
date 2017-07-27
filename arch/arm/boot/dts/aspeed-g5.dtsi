@@ -173,12 +173,6 @@
 				};
 			};
 
-			gfx: display@1e6e6000 {
-				compatible = "aspeed,ast2500-gfx", "syscon";
-				reg = <0x1e6e6000 0x1000>;
-				reg-io-width = <4>;
-			};
-
 			adc: adc@1e6e9000 {
 				compatible = "aspeed,ast2500-adc";
 				reg = <0x1e6e9000 0xb0>;
