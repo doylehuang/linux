@@ -210,6 +210,12 @@ static void __init do_sthelens_setup(void)
         writel(0x00008000, AST_IO(AST_BASE_GPIO | 0x3C));
         writel(0x000000FF, AST_IO(AST_BASE_GPIO | 0xAC));
         writel(0x00000018, AST_IO(AST_BASE_GPIO | 0xFC));
+
+        /* fix low time and frequency issues of I2C signals */
+        writel(0x77777305, AST_IO(AST_BASE_I2C | 0x44));
+        writel(0x77777305, AST_IO(AST_BASE_I2C | 0x84));
+        writel(0x77777305, AST_IO(AST_BASE_I2C | 0xc4));
+        writel(0x77777305, AST_IO(0x1E78A100 | 0x04));
 }
 static void __init do_palmetto_setup(void)
 {
