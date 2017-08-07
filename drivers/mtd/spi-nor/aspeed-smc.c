@@ -535,6 +535,21 @@ static void aspeed_smc_send_cmd_addr(struct spi_nor *nor, u8 cmd, u32 addr)
 	}
 }
 
+static void aspeed_smc_config_io_mode(struct spi_nor *nor)
+{
+	struct aspeed_smc_chip *chip = nor->priv;
+	u32 ctl = 0;
+	if (chip->nor.flash_read == SPI_NOR_DUAL) {
+		ctl = readl(chip->ctl) & ~CONTROL_SPI_IO_MODE_MASK;
+		ctl |= CONTROL_SPI_IO_DUAL_DATA;
+		writel(ctl, chip->ctl);
+	} else if (chip->nor.flash_read == SPI_NOR_QUAD) {
+		ctl = readl(chip->ctl) & ~CONTROL_SPI_IO_MODE_MASK;
+		ctl |= CONTROL_SPI_IO_QUAD_DATA;
+		writel(ctl, chip->ctl);
+	}
+}
+
 static int aspeed_smc_read_user(struct spi_nor *nor, loff_t from, size_t len,
 				size_t *retlen, u_char *read_buf)
 {
@@ -565,12 +580,7 @@ static int aspeed_smc_read_user(struct spi_nor *nor, loff_t from, size_t len,
 	for (i = 0; i < chip->nor.read_dummy / 8; ++i)
 		aspeed_smc_write_to_ahb(chip->base, &dummy, 1);
 
-	if (chip->nor.flash_read == SPI_NOR_DUAL) {
-		/* Switch to dual I/O mode for data cycle */
-		ctl = readl(chip->ctl) & ~CONTROL_SPI_IO_MODE_MASK;
-		ctl |= CONTROL_SPI_IO_DUAL_DATA;
-		writel(ctl, chip->ctl);
-	}
+	aspeed_smc_config_io_mode(nor);
 
 	aspeed_smc_read_from_ahb(read_buf, chip->base, len);
 	aspeed_smc_stop_user(nor);
@@ -605,6 +615,7 @@ static void aspeed_smc_write_user(struct spi_nor *nor, loff_t to, size_t len,
 
 	aspeed_smc_start_user(nor);
 	aspeed_smc_send_cmd_addr(nor, nor->program_opcode, to);
+	aspeed_smc_config_io_mode(nor);
 	aspeed_smc_write_to_ahb(chip->base, write_buf, len);
 	aspeed_smc_stop_user(nor);
 
@@ -888,6 +899,10 @@ static int aspeed_smc_chip_setup_finish(struct aspeed_smc_chip *chip)
 	case SPI_NOR_DUAL:
 		cmd = CONTROL_SPI_COMMAND_MODE_FREAD |
 			CONTROL_SPI_IO_DUAL_DATA;
+		break;
+	case SPI_NOR_QUAD:
+		cmd = CONTROL_SPI_COMMAND_MODE_FREAD |
+			CONTROL_SPI_IO_QUAD_DATA;
 		break;
 	default:
 		dev_err(chip->nor.dev, "unsupported SPI read mode\n");
