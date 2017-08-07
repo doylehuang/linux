@@ -1015,7 +1015,7 @@ static int aspeed_smc_probe(struct platform_device *pdev)
 		if (err)
 			continue;
 
-		err = spi_nor_scan(&chip->nor, NULL, SPI_NOR_DUAL);
+		err = spi_nor_scan(&chip->nor, NULL, SPI_NOR_QUAD);
 		if (err)
 			continue;
 
