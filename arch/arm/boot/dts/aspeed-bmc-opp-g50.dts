@@ -103,6 +103,7 @@
 	i2c-switch@76 {
 			compatible = "nxp,pca9548";
 			reg = <0x76>;
+			i2c-mux-idle-disconnect = <1>;
 			i2c@0 {
         			reg = <0x00>;
 			};
@@ -175,6 +176,7 @@
 	i2c-switch@75 {
 			compatible = "nxp,pca9546";
 			reg = <0x75>;
+			i2c-mux-idle-disconnect = <1>;
             i2c@0 {
                     reg = <0x0>;
                     tmp411@4c {
@@ -188,6 +190,7 @@
                         /* M.2 mux switch */
                         compatible = "nxp,pca9546";
                         reg = <0x73>;
+                        i2c-mux-idle-disconnect = <1>;
                         i2c@0 {
                                 reg = <0x0>;
                         };
@@ -216,6 +219,7 @@
 	i2c-switch@70 {
 		compatible = "nxp,pca9548";
 		reg = <0x70>;
+		i2c-mux-idle-disconnect = <1>;
 		i2c@0 {
 			reg = <0x0>;
 		};

@@ -75,9 +75,15 @@ struct chip_desc {
 	} muxtype;
 };
 
+
 /* Provide specs for the PCA954x types we know about */
 static const struct chip_desc chips[] = {
 	[pca_9540] = {
+		.nchans = 2,
+		.enable = 0x4,
+		.muxtype = pca954x_ismux,
+	},
+	[pca_9542] = {
 		.nchans = 2,
 		.enable = 0x4,
 		.muxtype = pca954x_ismux,
@@ -95,6 +101,10 @@ static const struct chip_desc chips[] = {
 		.nchans = 4,
 		.muxtype = pca954x_isswi,
 	},
+	[pca_9546] = {
+		.nchans = 4,
+		.muxtype = pca954x_isswi,
+	},
 	[pca_9547] = {
 		.nchans = 8,
 		.enable = 0x8,
@@ -108,11 +118,11 @@ static const struct chip_desc chips[] = {
 
 static const struct i2c_device_id pca954x_id[] = {
 	{ "pca9540", pca_9540 },
-	{ "pca9542", pca_9540 },
+	{ "pca9542", pca_9542 },
 	{ "pca9543", pca_9543 },
 	{ "pca9544", pca_9544 },
 	{ "pca9545", pca_9545 },
-	{ "pca9546", pca_9545 },
+	{ "pca9546", pca_9546 },
 	{ "pca9547", pca_9547 },
 	{ "pca9548", pca_9548 },
 	{ }
@@ -136,6 +146,9 @@ static int pca954x_reg_write(struct i2c_adapter *adap,
 		buf[0] = val;
 		msg.buf = buf;
 		ret = __i2c_transfer(adap, &msg, 1);
+
+		if (ret >= 0 && ret != 1)
+			ret = -EREMOTEIO;
 	} else {
 		union i2c_smbus_data data;
 		ret = adap->algo->smbus_xfer(adap, client->addr,
@@ -164,7 +177,7 @@ static int pca954x_select_chan(struct i2c_mux_core *muxc, u32 chan)
 	/* Only select the channel if its different from the last channel */
 	if (data->last_chan != regval) {
 		ret = pca954x_reg_write(muxc->parent, client, regval);
-		data->last_chan = ret ? 0 : regval;
+		data->last_chan = ret < 0 ? 0 : regval;
 	}
 
 	return ret;
@@ -247,9 +260,9 @@ static int pca954x_probe(struct i2c_client *client,
 				/* discard unconfigured channels */
 				break;
 			idle_disconnect_pd = pdata->modes[num].deselect_on_exit;
-			data->deselect |= (idle_disconnect_pd
-					   || idle_disconnect_dt) << num;
 		}
+		data->deselect |= (idle_disconnect_pd
+					   || idle_disconnect_dt) << num;
 
 		ret = i2c_mux_add_adapter(muxc, force, num, class);
 
