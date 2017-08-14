@@ -140,9 +140,9 @@
 						compatible = "national,lm75";
 						reg = <0x4b>;
 					};
-					lm75@4c {
-						compatible = "national,lm75";
-						reg = <0x4c>;
+					lm75@2a {
+						compatible = "national,tmp175";
+						reg = <0x2a>;
 					};
 					lm75@4d {
 						compatible = "national,lm75";
@@ -163,9 +163,9 @@
 					compatible = "nxp,pca9539";
 					reg = <0x74>;
 					};
-					GPIO-MUX4@77 {
-					compatible = "nxp,pca9539";
-					reg = <0x77>;
+					GPIO-MUX4@21 {
+					compatible = "nxp,tca6416";
+					reg = <0x21>;
 					};
 			};
 			i2c@7 {
@@ -177,6 +177,10 @@
 			reg = <0x75>;
             i2c@0 {
                     reg = <0x0>;
+                    tmp411@4c {
+                        compatible = "ti,tmp411";
+                        reg = <0x4c>;
+                    };
             };
 			i2c@1 {
                     reg = <0x1>;
