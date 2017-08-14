@@ -208,7 +208,9 @@ static int bcm54xx_config_init(struct phy_device *phydev)
 		bcm54xx_adjust_rxrefclk(phydev);
 
 	bcm54xx_phydsp_config(phydev);
-
+	
+	//default init register: 0x1c as 0x2
+	bcm_phy_write_shadow(phydev, BCM54XX_SHD_RGMII_MODE, 0x4);
 	return 0;
 }
 
