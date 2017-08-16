@@ -985,7 +985,16 @@ static const struct flash_info spi_nor_ids[] = {
 	{ "w25q80", INFO(0xef5014, 0, 64 * 1024,  16, SECT_4K) },
 	{ "w25q80bl", INFO(0xef4014, 0, 64 * 1024,  16, SECT_4K) },
 	{ "w25q128", INFO(0xef4018, 0, 64 * 1024, 256, SECT_4K) },
-	{ "w25q256", INFO(0xef4019, 0, 64 * 1024, 512, 0 | SPI_NOR_DUAL_READ) },
+	{
+		"w25q256", INFO(0xef4019, 0, 64 * 1024, 512,
+			SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ |
+			SPI_NOR_HAS_LOCK | SPI_NOR_HAS_TB)
+	},
+	{
+		"w25m512jv", INFO(0xef7119, 0, 64 * 1024, 1024,
+			SECT_4K | SPI_NOR_DUAL_READ | SPI_NOR_QUAD_READ |
+			SPI_NOR_HAS_LOCK | SPI_NOR_HAS_TB)
+	},
 
 	/* Catalyst / On Semiconductor -- non-JEDEC */
 	{ "cat25c11", CAT25_INFO(  16, 8, 16, 1, SPI_NOR_NO_ERASE | SPI_NOR_NO_FR) },
@@ -1443,6 +1452,32 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
 			/* No small sector erase for 4-byte command set */
 			nor->erase_opcode = SPINOR_OP_SE_4B;
 			mtd->erasesize = info->sector_size;
+		} else if (JEDEC_MFR(info) == SNOR_MFR_WINBOND) {
+			/* Dedicated 4-byte command set */
+			switch (nor->flash_read) {
+			case SPI_NOR_QUAD:
+				nor->read_opcode = SPINOR_OP_READ4_1_1_4;
+				if (!strcmp(info->name, "w25q256")) {
+					nor->program_opcode = 0x32;
+					nor->erase_opcode = 0xD8;
+					mtd->erasesize = 65536;
+				} else if (!strcmp(info->name, "w25m512jv")) {
+					nor->program_opcode = 0x34;
+					nor->erase_opcode = 0xD8;
+					mtd->erasesize = 65536;
+				}
+				break;
+			case SPI_NOR_DUAL:
+				nor->read_opcode = SPINOR_OP_READ4_1_1_2;
+				break;
+			case SPI_NOR_FAST:
+				nor->read_opcode = SPINOR_OP_READ4_FAST;
+				break;
+			case SPI_NOR_NORMAL:
+				nor->read_opcode = SPINOR_OP_READ4;
+				break;
+			}
+			set_4byte(nor, info, 1);
 		} else
 			set_4byte(nor, info, 1);
 	} else {
