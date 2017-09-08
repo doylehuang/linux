@@ -216,6 +216,11 @@
 };
 &i2c3{
 	status = "okay";
+        eeprom@50 {
+            compatible = "atmel,24c32";
+            reg = <0x50>;
+            pagesize = <32>;
+        };
 	i2c-switch@70 {
 		compatible = "nxp,pca9548";
 		reg = <0x70>;
