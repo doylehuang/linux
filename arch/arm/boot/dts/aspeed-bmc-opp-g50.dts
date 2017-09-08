@@ -13,7 +13,7 @@
 
 	chosen {
 		stdout-path = &uart5;
-		bootargs = "console=ttyS4,38400 earlyprintk";
+		bootargs = "console=ttyS4,115200 earlyprintk";
 	};
 
 	memory {
@@ -68,6 +68,7 @@
 
 &uart5 {
 	status = "okay";
+	current-speed = <115200>;
 };
 
 &i2c0{
