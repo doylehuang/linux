@@ -184,7 +184,6 @@
 
 	ucd90160@64 {
 		/* https://github.com/openbmc/openbmc/issues/832 */
-		status = "disabled";
 		compatible = "ti,ucd90160";
 		reg = <0x64>;
 	};
