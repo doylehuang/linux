@@ -175,17 +175,14 @@
 			};
 	};
 	i2c-switch@75 {
-			compatible = "nxp,pca9546";
-			reg = <0x75>;
-			i2c-mux-idle-disconnect = <1>;
-            i2c@0 {
+                compatible = "nxp,pca9546";
+                reg = <0x75>;
+                i2c-mux-idle-disconnect = <1>;
+
+                i2c@0 { /* NIC card */
                     reg = <0x0>;
-                    tmp411@4c {
-                        compatible = "ti,tmp411";
-                        reg = <0x4c>;
-                    };
-            };
-			i2c@1 {
+                };
+                i2c@1 {
                     reg = <0x1>;
                     i2c-switch@73 {
                         /* M.2 mux switch */
@@ -205,15 +202,18 @@
                                 reg = <0x3>;
                         };
                     };
-
-			};
-            i2c@2 {
+                };
+                i2c@2 { /* FPGA card */
                     reg = <0x2>;
-            };
-			i2c@3 {
-        			reg = <0x3>;
-			};
-	};	
+                    tmp411@4c {
+                        compatible = "ti,tmp411";
+                        reg = <0x4c>;
+                    };
+                };
+                i2c@3 {
+                    reg = <0x3>;
+                };
+        };	
 };
 &i2c3{
 	status = "okay";
