@@ -252,6 +252,25 @@
 		reg = <0x71>;
 		#address-cells = <1>;
 		#size-cells = <0>;
+		i2c-mux-idle-disconnect = <1>;
+        i2c@0 {
+            reg = <0x00>;
+        };
+        i2c@1 {
+            reg = <0x01>;
+            #address-cells = <1>;
+            #size-cells = <0>;
+            gpu1@4c {
+                compatible = "g50_gpu";
+                reg = <0x4c>;
+            };
+        };
+        i2c@2 {
+            reg = <0x02>;
+        };
+        i2c@3 {
+            reg = <0x03>;
+        };
 	};
 
 	/* MUX1 PCA9546A @71h
@@ -282,6 +301,25 @@
 		reg = <0x71>;
 		#address-cells = <1>;
 		#size-cells = <0>;
+        i2c-mux-idle-disconnect = <1>;
+        i2c@0 {
+            reg = <0x00>;
+            #address-cells = <1>;
+            #size-cells = <0>;
+            gpu1@4c {
+                compatible = "g50_gpu";
+                reg = <0x4c>;
+            };
+        };
+        i2c@1 {
+            reg = <0x01>;
+        };
+        i2c@2 {
+            reg = <0x02>;
+        };
+        i2c@3 {
+            reg = <0x03>;
+        };
 	};
 
 	/* MUX1 PCA9546A @71h
