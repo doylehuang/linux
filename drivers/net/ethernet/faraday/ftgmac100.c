@@ -275,11 +275,6 @@ static bool ftgmac100_rxdes_rx_error(struct ftgmac100_rxdes *rxdes)
 	return rxdes->rxdes0 & cpu_to_le32(FTGMAC100_RXDES0_RX_ERR);
 }
 
-static bool ftgmac100_rxdes_crc_error(struct ftgmac100_rxdes *rxdes)
-{
-	return rxdes->rxdes0 & cpu_to_le32(FTGMAC100_RXDES0_CRC_ERR);
-}
-
 static bool ftgmac100_rxdes_frame_too_long(struct ftgmac100_rxdes *rxdes)
 {
 	return rxdes->rxdes0 & cpu_to_le32(FTGMAC100_RXDES0_FTL);
@@ -320,13 +315,6 @@ static void ftgmac100_rxdes_set_dma_addr(struct ftgmac100_rxdes *rxdes,
 static dma_addr_t ftgmac100_rxdes_get_dma_addr(struct ftgmac100_rxdes *rxdes)
 {
 	return le32_to_cpu(rxdes->rxdes3);
-}
-
-static inline bool ftgmac100_rxdes_csum_err(struct ftgmac100_rxdes *rxdes)
-{
-	return !!(rxdes->rxdes1 & cpu_to_le32(FTGMAC100_RXDES1_TCP_CHKSUM_ERR |
-					      FTGMAC100_RXDES1_UDP_CHKSUM_ERR |
-					      FTGMAC100_RXDES1_IP_CHKSUM_ERR));
 }
 
 static inline struct page **ftgmac100_rxdes_page_slot(struct ftgmac100 *priv,
@@ -397,14 +385,6 @@ static bool ftgmac100_rx_packet_error(struct ftgmac100 *priv,
 			netdev_info(netdev, "rx err\n");
 
 		netdev->stats.rx_errors++;
-		error = true;
-	}
-
-	if (unlikely(ftgmac100_rxdes_crc_error(rxdes))) {
-		if (net_ratelimit())
-			netdev_info(netdev, "rx crc err\n");
-
-		netdev->stats.rx_crc_errors++;
 		error = true;
 	}
 
