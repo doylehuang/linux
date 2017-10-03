@@ -228,27 +228,75 @@
 		i2c-mux-idle-disconnect = <1>;
 		i2c@0 {
 			reg = <0x0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			gpu1@4f {
+				compatible = "g50_gpu";
+				reg = <0x4f>;
+			};
 		};
 		i2c@1 {
 			reg = <0x1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			gpu2@4f {
+				compatible = "g50_gpu";
+				reg = <0x4f>;
+			};
 		};
 		i2c@2 {
 			reg = <0x2>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			gpu3@4f {
+				compatible = "g50_gpu";
+				reg = <0x4f>;
+			};
 		};
 		i2c@3 {
 			reg = <0x3>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			gpu4@4f {
+				compatible = "g50_gpu";
+				reg = <0x4f>;
+			};
 		};
 		i2c@4 {
 			reg = <0x4>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			gpu5@4f {
+				compatible = "g50_gpu";
+				reg = <0x4f>;
+			};
 		};
 		i2c@5 {
 			reg = <0x5>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			gpu6@4f {
+				compatible = "g50_gpu";
+				reg = <0x4f>;
+			};
 		};
 		i2c@6 {
 			reg = <0x6>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			gpu7@4f {
+				compatible = "g50_gpu";
+				reg = <0x4f>;
+			};
 		};
 		i2c@7 {
 			reg = <0x7>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			gpu8@4f {
+				compatible = "g50_gpu";
+				reg = <0x4f>;
+			};
 		};
 	};
 	GPIO-MUX1@74 {
