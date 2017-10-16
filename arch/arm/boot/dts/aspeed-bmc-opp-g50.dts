@@ -34,6 +34,13 @@
 			};
 
 		};
+    apb {
+      wdt2: wdt@1e785020 {
+        compatible = "aspeed,ast2400-wdt";
+        reg = <0x1e785020 0x1c>;
+        status = "okay";
+      };
+    };
 	};
 
 	leds {
