@@ -143,7 +143,7 @@ static void __init do_sthelens_setup(void)
         writel(0x10CC5E80, AST_IO(AST_BASE_SCU | 0x0c));
 
         //Disable host SPI mode  bit 12:13 = 00
-        writel(0xFA1C84D6, AST_IO(AST_BASE_SCU | 0x70));
+        writel(0xFA1C84D2, AST_IO(AST_BASE_SCU | 0x70));
         /*config GPIOF0, GPIOF1, GPIOF3, GPIOF7 to gpio pin */
         writel(0x20000000, AST_IO(AST_BASE_SCU | 0x80));
         writel(0x00fff0c0, AST_IO(AST_BASE_SCU | 0x84));
