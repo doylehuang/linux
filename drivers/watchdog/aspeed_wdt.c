@@ -46,7 +46,7 @@ MODULE_DEVICE_TABLE(of, aspeed_wdt_of_table);
 
 /* 32 bits at 1MHz, in milliseconds */
 #define WDT_MAX_TIMEOUT_MS	4294967
-#define WDT_DEFAULT_TIMEOUT	30
+#define WDT_DEFAULT_TIMEOUT	60
 #define WDT_RATE_1MHZ		1000000
 
 static struct aspeed_wdt *to_aspeed_wdt(struct watchdog_device *wdd)
