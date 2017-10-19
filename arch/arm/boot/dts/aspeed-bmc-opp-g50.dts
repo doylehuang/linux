@@ -69,6 +69,7 @@
 
 &i2c0{
 	status = "okay";
+        clock-frequency = <99000>;
 	lm75@49 {
 			compatible = "national,lm75";
 			reg = <0x49>;
@@ -89,6 +90,7 @@
 };
 &i2c1{
 	status = "okay";
+        clock-frequency = <99000>;
 	i2c-switch@70 {
 			compatible = "nxp,pca9548";
 			reg = <0x70>;
@@ -97,6 +99,7 @@
 };
 &i2c2{
 	status = "okay";
+        clock-frequency = <99000>;
 	i2c-switch@76 {
 			compatible = "nxp,pca9548";
 			reg = <0x76>;
@@ -213,6 +216,7 @@
 };
 &i2c3{
 	status = "okay";
+        clock-frequency = <99000>;
         eeprom@50 {
             compatible = "atmel,24c32";
             reg = <0x50>;
@@ -258,6 +262,7 @@
 };
 &i2c4{
 	status = "okay";
+        clock-frequency = <99000>;
     eeprom@50 {
         compatible = "atmel,24c256";
         reg = <0x50>;
@@ -266,10 +271,13 @@
 };
 &i2c5{
 	status = "okay";
+        clock-frequency = <99000>;
 };
 &i2c6{
 	status = "okay";
+        clock-frequency = <99000>;
 };
 &i2c7{
 	status = "okay";
+        clock-frequency = <99000>;
 };
