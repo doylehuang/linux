@@ -457,6 +457,8 @@ static void aspeed_smc_start_user(struct spi_nor *nor)
 
 	ctl |= CONTROL_SPI_COMMAND_MODE_USER |
 		CONTROL_SPI_CE_STOP_ACTIVE_CONTROL;
+	if (chip->cs == 1)
+		dev_info(chip->nor.dev, "%s: write 0x%08X to ctrl\n", __func__, ctl);
 	writel(ctl, chip->ctl);
 
 	ctl &= ~CONTROL_SPI_CE_STOP_ACTIVE_CONTROL;
@@ -555,7 +557,6 @@ static int aspeed_smc_read_user(struct spi_nor *nor, loff_t from, size_t len,
 {
 	struct aspeed_smc_chip *chip = nor->priv;
 	int ret;
-	u32 ctl;
 	int i;
 	u8 dummy = 0xFF;
 
