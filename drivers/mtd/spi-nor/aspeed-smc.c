@@ -38,6 +38,9 @@ module_param(min_dma_size, uint, 0644);
 static unsigned int dma_timeout = 200;
 module_param(dma_timeout, uint, 0644);
 
+static bool do_reinit_ce0;
+module_param(do_reinit_ce0, bool, 0644);
+
 /*
  * In user mode all data bytes read or written to the chip decode address
  * range are transferred to or from the SPI bus. The range is treated as a
@@ -475,20 +478,106 @@ static void aspeed_smc_stop_user(struct spi_nor *nor)
 	writel(ctl, chip->ctl);		/* default to fread or read */
 }
 
+static void _aspeed_smc_write_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len);
+static void _aspeed_smc_read_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len);
+
+static inline void _write_enable(struct spi_nor *nor)
+{
+	_aspeed_smc_write_reg(nor, SPINOR_OP_WREN, NULL, 0);
+}
+
+static void _write_sr_cr(struct spi_nor *nor, u16 val)
+{
+	nor->cmd_buf[0] = val & 0xff;
+	nor->cmd_buf[1] = (val >> 8);
+
+	_aspeed_smc_write_reg(nor, SPINOR_OP_WRSR, nor->cmd_buf, 2);
+}
+
+static int _spi_nor_ready(struct spi_nor *nor)
+{
+	u8 val;
+	_aspeed_smc_read_reg(nor, SPINOR_OP_RDSR, &val, 1);
+	return !(val & SR_WIP);
+}
+
+static int _spi_nor_wait_till_ready(struct spi_nor *nor)
+{
+	unsigned long deadline;
+	int timeout = 0;
+
+	deadline = jiffies + 40UL * HZ;
+
+	while (!timeout) {
+		if (time_after_eq(jiffies, deadline))
+			timeout = 1;
+
+		if (_spi_nor_ready(nor))
+			return 0;
+
+		cond_resched();
+	}
+
+	dev_err(nor->dev, "flash operation timed out\n");
+
+	return -ETIMEDOUT;
+}
+
+static int reinit_ce0(struct spi_nor *nor)
+{
+	struct device *dev = nor->dev;
+
+	do_reinit_ce0 = 0;
+
+	/* Enter quad mode */
+	_write_enable(nor);
+	_write_sr_cr(nor, CR_QUAD_EN_SPAN << 8);
+	if (_spi_nor_wait_till_ready(nor)) {
+		dev_err(dev, "Failed to enter quad mode\n");
+		return -EINVAL;
+	}
+
+	/* Enter 4-byte addressing mode */
+	_aspeed_smc_write_reg(nor, SPINOR_OP_EN4B, NULL, 0);
+
+	return 0;
+}
+
+static void _aspeed_smc_read_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len)
+{
+	struct aspeed_smc_chip *chip = nor->priv;
+
+	aspeed_smc_start_user(nor);
+	aspeed_smc_write_to_ahb(chip->base, &opcode, 1);
+	aspeed_smc_read_from_ahb(buf, chip->base, len);
+	aspeed_smc_stop_user(nor);
+}
+
 static int aspeed_smc_read_reg(struct spi_nor *nor, u8 opcode, u8 *buf, int len)
 {
 	struct aspeed_smc_chip *chip = nor->priv;
 
 	mutex_lock(&chip->controller->mutex);
 
-	aspeed_smc_start_user(nor);
-	aspeed_smc_write_to_ahb(chip->base, &opcode, 1);
-	aspeed_smc_read_from_ahb(buf, chip->base, len);
-	aspeed_smc_stop_user(nor);
+	if (unlikely(do_reinit_ce0 && chip->cs == 0))
+		reinit_ce0(nor);
+
+	_aspeed_smc_read_reg(nor, opcode, buf, len);
 
 	mutex_unlock(&chip->controller->mutex);
 
 	return 0;
+}
+
+static void _aspeed_smc_write_reg(struct spi_nor *nor, u8 opcode, u8 *buf,
+				int len)
+{
+	struct aspeed_smc_chip *chip = nor->priv;
+
+	aspeed_smc_start_user(nor);
+	aspeed_smc_write_to_ahb(chip->base, &opcode, 1);
+	aspeed_smc_write_to_ahb(chip->base, buf, len);
+	aspeed_smc_stop_user(nor);
 }
 
 static int aspeed_smc_write_reg(struct spi_nor *nor, u8 opcode, u8 *buf,
@@ -498,10 +587,10 @@ static int aspeed_smc_write_reg(struct spi_nor *nor, u8 opcode, u8 *buf,
 
 	mutex_lock(&chip->controller->mutex);
 
-	aspeed_smc_start_user(nor);
-	aspeed_smc_write_to_ahb(chip->base, &opcode, 1);
-	aspeed_smc_write_to_ahb(chip->base, buf, len);
-	aspeed_smc_stop_user(nor);
+	if (unlikely(do_reinit_ce0 && chip->cs == 0))
+		reinit_ce0(nor);
+
+	_aspeed_smc_write_reg(nor, opcode, buf, len);
 
 	mutex_unlock(&chip->controller->mutex);
 
@@ -555,7 +644,6 @@ static int aspeed_smc_read_user(struct spi_nor *nor, loff_t from, size_t len,
 {
 	struct aspeed_smc_chip *chip = nor->priv;
 	int ret;
-	u32 ctl;
 	int i;
 	u8 dummy = 0xFF;
 
@@ -572,6 +660,9 @@ static int aspeed_smc_read_user(struct spi_nor *nor, loff_t from, size_t len,
 			goto out;
 		dev_err(chip->nor.dev, "DMA read failed: %d", ret);
 	}
+
+	if (unlikely(do_reinit_ce0 && chip->cs == 0))
+		reinit_ce0(nor);
 
 	aspeed_smc_start_user(nor);
 	aspeed_smc_send_cmd_addr(nor, nor->read_opcode, from);
@@ -612,6 +703,9 @@ static void aspeed_smc_write_user(struct spi_nor *nor, loff_t to, size_t len,
 			goto out;
 		dev_err(chip->nor.dev, "DMA write failed: %d", ret);
 	}
+
+	if (unlikely(do_reinit_ce0 && chip->cs == 0))
+		reinit_ce0(nor);
 
 	aspeed_smc_start_user(nor);
 	aspeed_smc_send_cmd_addr(nor, nor->program_opcode, to);

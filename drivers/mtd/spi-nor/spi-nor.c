@@ -1226,6 +1226,33 @@ static int spansion_quad_enable(struct spi_nor *nor)
 	return 0;
 }
 
+static int windbond_quad_enable(struct spi_nor *nor)
+{
+	int ret;
+	int quad_en = CR_QUAD_EN_SPAN << 8;
+
+	write_enable(nor);
+
+	ret = write_sr_cr(nor, quad_en);
+	if (ret < 0) {
+		dev_err(nor->dev,
+			"error while writing configuration register\n");
+		return -EINVAL;
+	}
+
+	if (spi_nor_wait_till_ready(nor))
+		return -EINVAL;
+
+	/* read back and check it */
+	ret = read_cr(nor);
+	if (!(ret > 0 && (ret & CR_QUAD_EN_SPAN))) {
+		dev_err(nor->dev, "Windbond Quad bit not set\n");
+		return -EINVAL;
+	}
+
+	return 0;
+}
+
 static int set_quad_mode(struct spi_nor *nor, const struct flash_info *info)
 {
 	int status;
@@ -1240,6 +1267,8 @@ static int set_quad_mode(struct spi_nor *nor, const struct flash_info *info)
 		return status;
 	case SNOR_MFR_MICRON:
 		return 0;
+	case SNOR_MFR_WINBOND:
+		return windbond_quad_enable(nor);
 	default:
 		status = spansion_quad_enable(nor);
 		if (status) {
