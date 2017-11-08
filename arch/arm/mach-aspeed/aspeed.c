@@ -145,7 +145,6 @@ static void __init do_sthelens_setup(void)
         //Disable host SPI mode  bit 12:13 = 00
         writel(0xFA1C84D2, AST_IO(AST_BASE_SCU | 0x70));
         /*config GPIOF0, GPIOF1, GPIOF3, GPIOF7 to gpio pin */
-        writel(0x20000000, AST_IO(AST_BASE_SCU | 0x80));
         writel(0x00fff0c0, AST_IO(AST_BASE_SCU | 0x84));
         /* SCU setup */
         writel(0x01C000FF, AST_IO(AST_BASE_SCU | 0x88));
@@ -201,7 +200,7 @@ static void __init do_sthelens_setup(void)
         writel(reg, AST_IO(AST_BASE_GPIO | 0x78));
          writel(reg, AST_IO(AST_BASE_GPIO | 0x78));
         /* Config GPIO Reset Tolerant Register */
-        writel(0x00008000, AST_IO(AST_BASE_GPIO | 0x3C));
+        writel(0x0000A000, AST_IO(AST_BASE_GPIO | 0x3C));
         writel(0x000000FF, AST_IO(AST_BASE_GPIO | 0xAC));
         writel(0x00000018, AST_IO(AST_BASE_GPIO | 0xFC));
 
