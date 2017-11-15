@@ -72,6 +72,46 @@
 &i2c0{
 	status = "okay";
         clock-frequency = <99000>;
+	lm25066@10 {
+		compatible = "lm25066";
+		reg = <0x10>;
+	};
+	lm25066@11 {
+		compatible = "lm25066";
+		reg = <0x11>;
+	};
+	lm25066@40 {
+		compatible = "lm25066";
+		reg = <0x40>;
+	};
+	lm25066@41 {
+		compatible = "lm25066";
+		reg = <0x41>;
+	};
+	lm25066@42 {
+		compatible = "lm25066";
+		reg = <0x42>;
+	};
+	lm25066@43 {
+		compatible = "lm25066";
+		reg = <0x43>;
+	};
+	lm25066@44 {
+		compatible = "lm25066";
+		reg = <0x44>;
+	};
+	lm25066@45 {
+		compatible = "lm25066";
+		reg = <0x45>;
+	};
+	lm25066@46 {
+		compatible = "lm25066";
+		reg = <0x46>;
+	};
+	lm25066@47 {
+		compatible = "lm25066";
+		reg = <0x47>;
+	};
 	lm75@49 {
 			compatible = "national,lm75";
 			reg = <0x49>;
@@ -95,7 +135,63 @@
         clock-frequency = <99000>;
 	i2c-switch@70 {
 			compatible = "nxp,pca9548";
+		#address-cells = <1>;
+		#size-cells = <0>;
 			reg = <0x70>;
+		i2c@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x00>;
+			pmbus@58 {
+				compatible = "pmbus";
+				reg = <0x58>;
+			};
+		};
+		i2c@1 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x01>;
+			pmbus@58 {
+				compatible = "pmbus";
+				reg = <0x58>;
+			};
+		};
+		i2c@2 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x02>;
+			pmbus@58 {
+				compatible = "pmbus";
+				reg = <0x58>;
+			};
+		};
+		i2c@3 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x03>;
+			pmbus@58 {
+				compatible = "pmbus";
+				reg = <0x58>;
+			};
+		};
+		i2c@4 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x04>;
+			pmbus@58 {
+				compatible = "pmbus";
+				reg = <0x58>;
+			};
+		};
+		i2c@5 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x05>;
+			pmbus@58 {
+				compatible = "pmbus";
+				reg = <0x58>;
+			};
+		};
 	};
 
 };
