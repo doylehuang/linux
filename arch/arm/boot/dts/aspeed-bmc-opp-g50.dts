@@ -71,7 +71,7 @@
 
 &i2c0{
 	status = "okay";
-        clock-frequency = <99000>;
+	clock-frequency = <99000>;
 	lm25066@10 {
 		compatible = "lm25066";
 		reg = <0x10>;
@@ -113,31 +113,31 @@
 		reg = <0x47>;
 	};
 	lm75@49 {
-			compatible = "national,lm75";
-			reg = <0x49>;
+		compatible = "national,lm75";
+		reg = <0x49>;
 	};
 	lm75@4a {
-			compatible = "national,lm75";
-			reg = <0x4a>;
+		compatible = "national,lm75";
+		reg = <0x4a>;
 	};
 	lm75@4b {
-			compatible = "national,lm75";
-			reg = <0x4b>;
+		compatible = "national,lm75";
+		reg = <0x4b>;
 	};
-    eeprom@50 {
-            compatible = "atmel,24c32";
-            reg = <0x50>;
-            pagesize = <32>;
-    };
+	eeprom@50 {
+		compatible = "atmel,24c32";
+		reg = <0x50>;
+		pagesize = <32>;
+	};
 };
 &i2c1{
 	status = "okay";
         clock-frequency = <99000>;
 	i2c-switch@70 {
-			compatible = "nxp,pca9548";
+		compatible = "nxp,pca9548";
 		#address-cells = <1>;
 		#size-cells = <0>;
-			reg = <0x70>;
+		reg = <0x70>;
 		i2c@0 {
 			#address-cells = <1>;
 			#size-cells = <0>;
@@ -199,118 +199,156 @@
 	status = "okay";
         clock-frequency = <99000>;
 	i2c-switch@76 {
-			compatible = "nxp,pca9548";
-			reg = <0x76>;
-			i2c-mux-idle-disconnect = <1>;
-			i2c@0 {
-        			reg = <0x00>;
+		compatible = "nxp,pca9548";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x76>;
+		i2c-mux-idle-disconnect = <1>;
+		i2c@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x00>;
+		};
+		i2c@1 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x01>;
+		};
+		i2c@2 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x02>;
+		};
+		i2c@3 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x03>;
+		};
+		i2c@4 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x04>;
+			GPIO-MUX5@71 {
+				compatible = "nxp,pca9538";
+				reg = <0x71>;
 			};
-			i2c@1 {
-        			reg = <0x01>;
-        	};
-			i2c@2 {
-        			reg = <0x02>;
+		};
+		i2c@5 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x05>;
+			lm75@37 {
+				compatible = "national,lm75";
+				reg = <0x37>;
 			};
-			i2c@3 {
-        			reg = <0x03>;
-        	};
-			i2c@4 {
-        			reg = <0x04>;
-					GPIO-MUX5@71 {
-						compatible = "nxp,pca9538";
-						reg = <0x71>;
-					};
+			lm75@49 {
+				compatible = "national,lm75";
+				reg = <0x49>;
 			};
-			i2c@5 {
-        			reg = <0x05>;
-                        lm75@37 {
-	              		compatible = "national,lm75";
-                        reg = <0x37>;
-        			};
-					lm75@49 {
-						compatible = "national,lm75";
-						reg = <0x49>;
-					};
-					lm75@4a {
-						compatible = "national,lm75";
-						reg = <0x4a>;
-					};
-					lm75@4b {
-						compatible = "national,lm75";
-						reg = <0x4b>;
-					};
-					lm75@2a {
-						compatible = "national,tmp175";
-						reg = <0x2a>;
-					};
-					lm75@4d {
-						compatible = "national,lm75";
-						reg = <0x4d>;
-					};
-					lm75@4e {
-						compatible = "national,lm75";
-						reg = <0x4e>;
-					};
-					lm75@4f {
-						compatible = "national,lm75";
-						reg = <0x4f>;
-					};
+			lm75@4a {
+				compatible = "national,lm75";
+				reg = <0x4a>;
 			};
-			i2c@6 {
-        			reg = <0x06>;
-					GPIO-MUX3@74 {
-					compatible = "nxp,pca9539";
-					reg = <0x74>;
-					};
-					GPIO-MUX4@21 {
-					compatible = "nxp,tca6416";
-					reg = <0x21>;
-					};
+			lm75@4b {
+				compatible = "national,lm75";
+				reg = <0x4b>;
 			};
-			i2c@7 {
-        			reg = <0x07>;
+			lm75@2a {
+				compatible = "national,tmp175";
+				reg = <0x2a>;
 			};
+			lm75@4d {
+				compatible = "national,lm75";
+				reg = <0x4d>;
+			};
+			lm75@4e {
+				compatible = "national,lm75";
+				reg = <0x4e>;
+			};
+			lm75@4f {
+				compatible = "national,lm75";
+				reg = <0x4f>;
+			};
+		};
+		i2c@6 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x06>;
+			GPIO-MUX3@74 {
+				compatible = "nxp,pca9539";
+				reg = <0x74>;
+			};
+			GPIO-MUX4@21 {
+				compatible = "nxp,tca6416";
+				reg = <0x21>;
+			};
+		};
+		i2c@7 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x07>;
+		};
 	};
 	i2c-switch@75 {
-                compatible = "nxp,pca9546";
-                reg = <0x75>;
-                i2c-mux-idle-disconnect = <1>;
+		compatible = "nxp,pca9546";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		reg = <0x75>;
+		i2c-mux-idle-disconnect = <1>;
 
-                i2c@0 { /* NIC card */
-                    reg = <0x0>;
-                };
-                i2c@1 {
-                    reg = <0x1>;
-                    i2c-switch@73 {
-                        /* M.2 mux switch */
-                        compatible = "nxp,pca9546";
-                        reg = <0x73>;
-                        i2c-mux-idle-disconnect = <1>;
-                        i2c@0 {
-                                reg = <0x0>;
-                        };
-                        i2c@1 {
-                                reg = <0x1>;
-                        };
-                        i2c@2 {
-                                reg = <0x2>;
-                        };
-                        i2c@3 {
-                                reg = <0x3>;
-                        };
-                    };
-                };
-                i2c@2 { /* FPGA card */
-                    reg = <0x2>;
-                    tmp411@4c {
-                        compatible = "ti,tmp411";
-                        reg = <0x4c>;
-                    };
-                };
-                i2c@3 {
-                    reg = <0x3>;
-                };
-        };	
+		i2c@0 { /* NIC card */
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x0>;
+		};
+		i2c@1 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x1>;
+			i2c-switch@73 {
+				/* M.2 mux switch */
+				compatible = "nxp,pca9546";
+				#address-cells = <1>;
+				#size-cells = <0>;
+				reg = <0x73>;
+				i2c-mux-idle-disconnect = <1>;
+				i2c@0 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <0x0>;
+				};
+				i2c@1 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <0x1>;
+				};
+				i2c@2 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <0x2>;
+				};
+				i2c@3 {
+					#address-cells = <1>;
+					#size-cells = <0>;
+					reg = <0x3>;
+				};
+			};
+		};
+		i2c@2 { /* FPGA card */
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x2>;
+			tmp411@4c {
+				compatible = "ti,tmp411";
+				reg = <0x4c>;
+			};
+		};
+		i2c@3 {
+			#address-cells = <1>;
+			#size-cells = <0>;
+			reg = <0x3>;
+		};
+	};
 };
 &i2c3{
 	status = "okay";
@@ -322,30 +360,48 @@
         };
 	i2c-switch@70 {
 		compatible = "nxp,pca9548";
+		#address-cells = <1>;
+		#size-cells = <0>;
 		reg = <0x70>;
 		i2c-mux-idle-disconnect = <1>;
 		i2c@0 {
+			#address-cells = <1>;
+			#size-cells = <0>;
 			reg = <0x0>;
 		};
 		i2c@1 {
+			#address-cells = <1>;
+			#size-cells = <0>;
 			reg = <0x1>;
 		};
 		i2c@2 {
+			#address-cells = <1>;
+			#size-cells = <0>;
 			reg = <0x2>;
 		};
 		i2c@3 {
+			#address-cells = <1>;
+			#size-cells = <0>;
 			reg = <0x3>;
 		};
 		i2c@4 {
+			#address-cells = <1>;
+			#size-cells = <0>;
 			reg = <0x4>;
 		};
 		i2c@5 {
+			#address-cells = <1>;
+			#size-cells = <0>;
 			reg = <0x5>;
 		};
 		i2c@6 {
+			#address-cells = <1>;
+			#size-cells = <0>;
 			reg = <0x6>;
 		};
 		i2c@7 {
+			#address-cells = <1>;
+			#size-cells = <0>;
 			reg = <0x7>;
 		};
 	};
