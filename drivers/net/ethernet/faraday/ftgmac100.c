@@ -277,7 +277,19 @@ static bool ftgmac100_rxdes_rx_error(struct ftgmac100_rxdes *rxdes)
 
 static bool ftgmac100_rxdes_crc_error(struct ftgmac100_rxdes *rxdes)
 {
-	return rxdes->rxdes0 & cpu_to_le32(FTGMAC100_RXDES0_CRC_ERR);
+	bool ret = false;
+
+	if ( (rxdes->rxdes0 & cpu_to_le32(FTGMAC100_RXDES0_CRC_ERR)) &&
+	 ((rxdes->rxdes0 & cpu_to_le32(FTGMAC100_RXDES0_FIFO_FULL) != FTGMAC100_RXDES0_FIFO_FULL)) )
+	{
+		ret = true;
+	}
+	return ret;
+}
+
+static bool ftgmac100_rxdes_FIFO_FULL(struct ftgmac100_rxdes *rxdes)
+{
+	return rxdes->rxdes0 & cpu_to_le32(FTGMAC100_RXDES0_FIFO_FULL);
 }
 
 static bool ftgmac100_rxdes_frame_too_long(struct ftgmac100_rxdes *rxdes)
@@ -425,6 +437,8 @@ static bool ftgmac100_rx_packet_error(struct ftgmac100 *priv,
 			netdev_info(netdev, "rx crc err\n");
 
 		netdev->stats.rx_crc_errors++;
+		error = true;
+	} else if (unlikely(ftgmac100_rxdes_FIFO_FULL(rxdes))) {
 		error = true;
 	} else if (unlikely(ftgmac100_rxdes_ipcs_err(rxdes))) {
 		if (net_ratelimit())
@@ -1043,13 +1057,10 @@ static int ftgmac100_poll(struct napi_struct *napi, int budget)
 	status = ioread32(priv->base + FTGMAC100_OFFSET_ISR);
 	iowrite32(status, priv->base + FTGMAC100_OFFSET_ISR);
 
-	if (status & (FTGMAC100_INT_RPKT_BUF | FTGMAC100_INT_NO_RXBUF)) {
+	if (status & FTGMAC100_INT_RPKT_BUF ) {
 		/*
 		 * FTGMAC100_INT_RPKT_BUF:
 		 *	RX DMA has received packets into RX buffer successfully
-		 *
-		 * FTGMAC100_INT_NO_RXBUF:
-		 *	RX buffer unavailable
 		 */
 		bool retry;
 
