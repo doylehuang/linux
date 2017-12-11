@@ -176,3 +176,5 @@ obj-$(CONFIG_PMBUS)		+= pmbus/
 
 ccflags-$(CONFIG_HWMON_DEBUG_CHIP) := -DDEBUG
 
+obj-$(CONFIG_SENSORS_HDD_MICRON)	+= hdd_micron.o
+

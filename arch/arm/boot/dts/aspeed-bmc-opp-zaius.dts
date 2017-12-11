@@ -335,6 +335,23 @@
 		compatible = "national,lm75";
 		reg = <0x4f>;
 	};
+
+	hdd@71 {
+		compatible = "hdd_micron";
+		reg = <0x71>;
+	};
+	hdd@72 {
+		compatible = "hdd_micron";
+		reg = <0x72>;
+	};
+	hdd@73 {
+		compatible = "hdd_micron";
+		reg = <0x73>;
+	};
+	hdd@74 {
+		compatible = "hdd_micron";
+		reg = <0x74>;
+	};
 };
 
 &i2c10 {
