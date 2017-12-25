@@ -72,7 +72,8 @@ static void __init do_common_setup(void)
 	writel(0x00000500, AST_IO(AST_BASE_LPC | 0x80));
 
 	/* Set UART routing */
-	writel(0x00000000, AST_IO(AST_BASE_LPC | 0x9c));
+	//Disable this setting,because route uart to io is setting on u-boot
+	//writel(0x00000000, AST_IO(AST_BASE_LPC | 0x9c));
 
 	/* Setup scratch registers */
 	writel(0x00000042, AST_IO(AST_BASE_LPC | 0x170));
