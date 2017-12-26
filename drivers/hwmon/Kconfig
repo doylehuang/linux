@@ -1901,4 +1901,8 @@ config SENSORS_ATK0110
 
 endif # ACPI
 
+config SENSORS_HDD_MICRON
+	tristate
+	default y
+
 endif # HWMON
