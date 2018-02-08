@@ -149,6 +149,57 @@ static void __init do_ast2500evb_setup(void)
 	writel(BIT(6) | BIT(7), AST_IO(AST_BASE_SCU | 0x70));
 }
 
+/*
+    @GPIOA0: RMII_SW1_SEL_N, b"0: switch LOM+VGA, default setting
+                             b"1: switch MEZZ
+    @GPIOE6: PE_E2A_MEZZA_CP1_PRSNT_N , detect 'OCP MEZZ CONNA', b"0: present, b"1: not present
+    @GPIOE7: PE_E2B_LAN_BMC_CP1_PRSNT_N, detect 'LOM+VGA Conn', b"0: present, b"1: not present
+
+
+    Insert Card |  GPIOE6  |  GPIOE7  |  GPIOA0 setting
+    ---------------------------------------------------------------
+    CX5         |    b"0   |   b"1    |     b"1
+    CX4         |    b"0   |   b"1    |     b"1
+  CX4+'LOM+VGA' |    b"0   |   b"0    |     b"0
+    'LOM+VGA'   |    b"1   |   b"0    |     b"0
+    None        |    b"1   |   b"1    |     b"0
+*/
+static void __init do_ncsi_switch_init(void)
+{
+	unsigned long reg_GPIOA0 = 0; //default set GPIOA0 as b"0
+	unsigned long reg_GPIOE6, reg_GPIOE7;
+	unsigned long reg;
+
+	//read GPIOE6
+	reg_GPIOE6 = readl(AST_IO(AST_BASE_GPIO | 0x20));
+	reg_GPIOE6 &= (1 << (0 + 6));
+
+	//read GPIOE7
+	reg_GPIOE7 = readl(AST_IO(AST_BASE_GPIO | 0x20));
+	reg_GPIOE7 &= (1 << (0 + 7));
+
+	if (reg_GPIOE6 == 0 || reg_GPIOE7 == 0) {//at least one card
+		if (reg_GPIOE7 != 0) //no 'LOM+VGA' card to insert, set GPIOA0 as b"1 to switch  MEZZ
+			reg_GPIOA0 = 1;
+	}
+
+	//set GPIOA0 multifuction pin as GPIO
+	reg = readl(AST_IO(AST_BASE_SCU | 0x80));
+	reg &= ~(1 << 0);
+	writel(reg, AST_IO(AST_BASE_SCU | 0x80));
+
+	//set GPIOA0 value for ncsi switch
+	reg = readl(AST_IO(AST_BASE_GPIO | 0x00));
+	reg &= ~(1 << 0);
+	reg |= (reg_GPIOA0 << 0);
+	writel(reg, AST_IO(AST_BASE_GPIO | 0x00));
+
+	//set GPIOA0 direction as output
+	reg = readl(AST_IO(AST_BASE_GPIO | 0x04));
+	reg |= (1 << 0);
+	writel(reg, AST_IO(AST_BASE_GPIO | 0x04));
+}
+
 static void __init do_zaius_setup(void)
 {
 	unsigned long reg;
@@ -223,6 +274,8 @@ static void __init do_zaius_setup(void)
 	/* Set pin high */
 	reg = readl(AST_IO(AST_BASE_GPIO | 0x00));
 	writel(reg | phy_reset_mask, AST_IO(AST_BASE_GPIO | 0x00));
+
+	do_ncsi_switch_init();
 	
 	/* Disable default behavior of UART1 being held in reset by LPCRST#.
 	 * By releasing UART1 from being controlled by LPC reset, it becomes
