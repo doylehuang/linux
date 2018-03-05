@@ -1905,4 +1905,8 @@ config SENSORS_HDD_MICRON
 	tristate
 	default y
 
+config SENSORS_HDD_EXPANDER
+	tristate
+	default y
+
 endif # HWMON

@@ -403,6 +403,11 @@
 		compatible = "hdd_micron";
 		reg = <0x74>;
 	};
+
+	hdd_expander@5f {
+		compatible = "hdd_expander";
+		reg = <0x5f>;
+	};
 };
 
 &i2c10 {
