@@ -1901,7 +1901,7 @@ config SENSORS_ATK0110
 
 endif # ACPI
 
-config SENSORS_HDD_MICRON
+config SENSORS_HDD_G2
 	tristate
 	default y
 
