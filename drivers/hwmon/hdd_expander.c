@@ -245,5 +245,6 @@ static struct i2c_driver hdd_expander_driver = {
 
 module_i2c_driver(hdd_expander_driver);
 
+MODULE_AUTHOR("FXN-KS-BMC");
 MODULE_LICENSE("GPL");
 
