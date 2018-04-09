@@ -337,6 +337,10 @@ static void __init do_witherspoon_setup(void)
 	do_common_setup();
 }
 
+static void __init do_romulus_setup(void)
+{
+	do_common_setup();
+}
 
 static void __init do_lanyang_setup(void)
 {
