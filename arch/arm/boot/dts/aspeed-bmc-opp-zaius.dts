@@ -125,14 +125,8 @@
 		io-channels = <&adc 0>, <&adc 1>, <&adc 2>, <&adc 3>,
 			<&adc 4>, <&adc 5>, <&adc 6>, <&adc 7>,
 			<&adc 8>, <&adc 9>, <&adc 10>, <&adc 11>,
-			<&adc 13>, <&adc 14>, <&adc 15>;
+			<&adc 12>, <&adc 13>, <&adc 14>, <&adc 15>;
 	};
-
-	iio-hwmon-battery {
-		compatible = "iio-hwmon";
-		io-channels = <&adc 12>;
-	};
-
 };
 
 #include "ibm-power9-cfam.dtsi"

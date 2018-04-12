@@ -179,7 +179,6 @@
 				clocks = <&syscon ASPEED_CLK_APB>;
 				resets = <&syscon ASPEED_RESET_ADC>;
 				#io-channel-cells = <1>;
-				status = "disabled";
 			};
 
 			sram@1e720000 {
