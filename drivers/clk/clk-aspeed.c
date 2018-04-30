@@ -28,6 +28,7 @@
 #define ASPEED_RESET_CTRL	0x04
 #define ASPEED_CLK_SELECTION	0x08
 #define ASPEED_CLK_STOP_CTRL	0x0c
+	#define REG_USB_HOST_CONTROLLER_CLOCK BIT(9)
 #define ASPEED_MPLL_PARAM	0x20
 #define ASPEED_HPLL_PARAM	0x24
 #define  AST2500_HPLL_BYPASS_EN	BIT(20)
@@ -270,6 +271,12 @@ static void aspeed_clk_disable(struct clk_hw *hw)
 	spin_lock_irqsave(gate->lock, flags);
 
 	enval = (gate->flags & CLK_GATE_SET_TO_DISABLE) ? clk : 0;
+	/*
+		It shall not disable REG_USB_HOST_CONTROLLER_CLOCK bit ,
+	because  it is setted by do_zaius_setup in aspeed.c
+	during of the setp about kernel init.
+	*/
+	clk &= ~(REG_USB_HOST_CONTROLLER_CLOCK);
 	regmap_update_bits(gate->map, ASPEED_CLK_STOP_CTRL, clk, enval);
 
 	spin_unlock_irqrestore(gate->lock, flags);

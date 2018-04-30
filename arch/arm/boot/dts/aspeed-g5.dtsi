@@ -138,12 +138,12 @@
 			status = "disabled";
 		};
 
-                usb:  uhci@1e6b0000 {
-                        compatible = "platform-uhci";
-                        reg = <0x1e6b0000 0x1000>;
-                        interrupts = <14>;
-			status = "disabled";
-                };
+		usb:  uhci@1e6b0000 {
+			compatible = "platform-uhci";
+			reg = <0x1e6b0000 0x1000>;
+			interrupts = <14>;
+			clocks = <&syscon ASPEED_CLK_GATE_USBUHCICLK>;
+		};
 
 		apb {
 			compatible = "simple-bus";
