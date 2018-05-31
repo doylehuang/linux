@@ -18,6 +18,7 @@ struct hdd_expander_data {
 #define REQUEST_DATA_SIZE (4)
 #define RESPONSE_DATA_SIZE (3)
 #define REQUEST_FUNCTION_ID (0x0400)
+#define MULTIPLIER (1000)
 
 /**
  * hdd_expander_send - Send to HDD Expander Command register
@@ -80,7 +81,7 @@ static int hdd_expander_get_temperature(struct device *dev, ssize_t device_index
 			2 - Temperature for Disk
 	*/
 	if (hdd_read_buf[1] == 0x00)
-		return hdd_read_buf[2];
+		return (hdd_read_buf[2] * MULTIPLIER);
 abort:
 	return 0;
 }
