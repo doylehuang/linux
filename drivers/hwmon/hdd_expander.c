@@ -13,12 +13,16 @@ struct hdd_expander_data {
 	struct device		*hwmon_dev;
 	struct mutex		update_lock;
 	int			temperature;
+	unsigned int		present_status;
 };
 
 #define REQUEST_DATA_SIZE (4)
 #define RESPONSE_DATA_SIZE (3)
+#define PRESENT_RESPONSE_DATA_SIZE (5)
 #define REQUEST_FUNCTION_ID (0x0400)
 #define MULTIPLIER (1000)
+
+struct mutex		g_inspect_update_lock;
 
 /**
  * hdd_expander_send - Send to HDD Expander Command register
@@ -105,6 +109,56 @@ static struct hdd_expander_data *hdd_expander_update_temperature(struct device *
 	return data;
 }
 
+static struct hdd_expander_data *hdd_expander_update_present_status(struct device *dev)
+{
+    struct hdd_expander_data *data = dev_get_drvdata(dev);
+    struct i2c_client *client = data->client;
+    struct i2c_msg hdd_i2c_msg[2] = {0};
+    int hdd_i2c_msg_num = 0;
+    u8 hdd_write_buf[REQUEST_DATA_SIZE] = {0};
+    u8 hdd_read_buf[PRESENT_RESPONSE_DATA_SIZE] = {0};
+
+    mutex_lock(&data->update_lock);
+
+    hdd_write_buf[0] = 0xFC;
+    hdd_write_buf[1] = 0x03;
+    hdd_write_buf[2] = 0x00;
+    hdd_write_buf[3] = 0x00;
+    hdd_i2c_msg[hdd_i2c_msg_num].addr = client->addr;
+    hdd_i2c_msg[hdd_i2c_msg_num].flags = 0;
+    hdd_i2c_msg[hdd_i2c_msg_num].buf = hdd_write_buf;
+    hdd_i2c_msg[hdd_i2c_msg_num].len = REQUEST_DATA_SIZE;
+    hdd_i2c_msg_num+=1;
+    hdd_i2c_msg[hdd_i2c_msg_num].addr = client->addr;
+    hdd_i2c_msg[hdd_i2c_msg_num].flags = I2C_M_RD;
+    hdd_i2c_msg[hdd_i2c_msg_num].buf = hdd_read_buf;
+    hdd_i2c_msg[hdd_i2c_msg_num].len = PRESENT_RESPONSE_DATA_SIZE;
+    hdd_i2c_msg_num+=1;
+
+    data->present_status = 0;
+    if (hdd_expander_i2c_access(dev, hdd_i2c_msg, hdd_i2c_msg_num) >= 0) {
+        /*
+            [0]: checksum Byte
+            [1]: Completion Code
+                - 0x00 : success
+                - 0x01 : fail
+                - 0x02 : Device does not exist
+                - 0x03 : Checksum error
+            [2]: present status for Disk 00~07
+            [3]: present status for Disk 08~15
+            [4]: present status for Disk 16~23
+        */
+        if (hdd_read_buf[1] == 0x00) {
+            data->present_status = (hdd_read_buf[2]) | (hdd_read_buf[3] << 8) | (hdd_read_buf[4] << 16);
+        } else {
+            printk(KERN_INFO "%s: 0x%x  Error!!\n", __FUNCTION__, hdd_read_buf[1]);
+        }
+    }
+    
+    mutex_unlock(&data->update_lock);
+    return data;
+}
+
 static ssize_t show_temp(struct device *dev, struct device_attribute *da,
 			 char *buf)
 {
@@ -115,13 +169,32 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
 		sscanf(da->attr.name, "temp%d_input", &device_index);
 	}
 
+	mutex_lock(&g_inspect_update_lock);
 	data = hdd_expander_update_temperature(dev, device_index);
+	mutex_unlock(&g_inspect_update_lock);
 
 	if (IS_ERR(data))
 		return PTR_ERR(data);
 
 	return sprintf(buf, "%d\n", data->temperature);
 }
+
+static ssize_t show_present_status(struct device *dev, struct device_attribute *da,
+			 char *buf)
+{
+	struct hdd_expander_data *data =  NULL;
+	ssize_t device_index = -1;
+
+	mutex_lock(&g_inspect_update_lock);
+	data = hdd_expander_update_present_status(dev);
+	mutex_unlock(&g_inspect_update_lock);
+
+	if (IS_ERR(data))
+		return PTR_ERR(data);
+
+	return sprintf(buf, "%ld\n", data->present_status);
+}
+
 
 static SENSOR_DEVICE_ATTR(temp0_input, S_IRUGO, show_temp, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 1);
@@ -147,6 +220,7 @@ static SENSOR_DEVICE_ATTR(temp20_input, S_IRUGO, show_temp, NULL, 20);
 static SENSOR_DEVICE_ATTR(temp21_input, S_IRUGO, show_temp, NULL, 21);
 static SENSOR_DEVICE_ATTR(temp22_input, S_IRUGO, show_temp, NULL, 22);
 static SENSOR_DEVICE_ATTR(temp23_input, S_IRUGO, show_temp, NULL, 23);
+static SENSOR_DEVICE_ATTR(present_status, S_IRUGO, show_present_status, NULL, 23);
 static struct attribute *hdd_expander_attrs[] = {
 	&sensor_dev_attr_temp0_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
@@ -172,6 +246,7 @@ static struct attribute *hdd_expander_attrs[] = {
 	&sensor_dev_attr_temp21_input.dev_attr.attr,
 	&sensor_dev_attr_temp22_input.dev_attr.attr,
 	&sensor_dev_attr_temp23_input.dev_attr.attr,
+	&sensor_dev_attr_present_status.dev_attr.attr,
 	NULL
 };
 ATTRIBUTE_GROUPS(hdd_expander);
@@ -189,6 +264,7 @@ hdd_expander_probe(struct i2c_client *client, const struct i2c_device_id *id)
 	i2c_set_clientdata(client, data);
 
 	mutex_init(&data->update_lock);
+	mutex_init(&g_inspect_update_lock);
 
 	data->hwmon_dev = hwmon_device_register_with_groups(dev, client->name,
 								data,
