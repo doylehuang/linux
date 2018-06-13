@@ -178,5 +178,6 @@ obj-y				+= g2_gpu.o
 ccflags-$(CONFIG_HWMON_DEBUG_CHIP) := -DDEBUG
 
 obj-$(CONFIG_SENSORS_HDD_G2)	+= hdd_g2.o
+obj-$(CONFIG_SENSORS_HDD_G2)	+= pex9797_g2.o
 obj-$(CONFIG_SENSORS_HDD_EXPANDER)	+= hdd_expander.o
 

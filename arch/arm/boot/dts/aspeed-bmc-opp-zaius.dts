@@ -438,6 +438,11 @@
 		reg = <0x75>;
 	};
 
+	pex97797@5d {
+		compatible = "pex9797_g2";
+		reg = <0x5d>;
+	};
+
 	hdd_expander@5f {
 		compatible = "hdd_expander";
 		reg = <0x5f>;
