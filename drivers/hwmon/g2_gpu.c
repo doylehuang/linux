@@ -99,9 +99,10 @@ static struct g50_gpu_data *g50_gpu_update_temperature(struct device *dev, ssize
 	struct g50_gpu_data *data = dev_get_drvdata(dev);
 	struct i2c_client *client = data->client;
 	int ret;
-	if ((device_index < 0 ) || (device_index >= sizeof(g2_gpu_slave_address))) {
-		return data;
-	}
+
+	if (device_index == 0)
+		data->temperature = 0;
+
 	g2_gpu_present_status &= ~(1 << device_index);
 
 	mutex_lock(&inspect_update_lock_gpu);
@@ -109,7 +110,7 @@ static struct g50_gpu_data *g50_gpu_update_temperature(struct device *dev, ssize
 	client->addr = g2_gpu_slave_address[device_index];
 	ret = g50_gpu_get_temperature(dev, 0x00);
 	if (ret >= 0) {
-		data->temperature = ret;
+		data->temperature = (data->temperature < ret)? ret : data->temperature;
 		g2_gpu_present_status |= (1 << device_index);
 	}
 	mutex_unlock(&data->update_lock);
@@ -187,14 +188,11 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
 			 char *buf)
 {
 	struct g50_gpu_data *data = NULL;
-	ssize_t device_index = -1;
+	ssize_t device_index;
 
-	if (da != NULL && da->attr.name != NULL) {
-		sscanf(da->attr.name, "temp%d_input", &device_index);
-		device_index -= 1;
+	for (device_index = 0; device_index < sizeof(g2_gpu_slave_address); device_index++) {
+		data = g50_gpu_update_temperature(dev, device_index);
 	}
-
-	data = g50_gpu_update_temperature(dev, device_index);
 
 	if (IS_ERR(data))
 		return PTR_ERR(data);
@@ -244,15 +242,11 @@ static ssize_t show_string(struct device *dev, struct device_attribute *da,
 }
 
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0); //gpu slave address: 0x4c
-static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 0); //gpu slave address: 0x4e
-static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 0); //gpu slave address: 0x4f
 static SENSOR_DEVICE_ATTR(present_status, S_IRUGO, show_present_status, NULL, 0); //gpu slave address: 0x4f
 
 
 static struct attribute *g50_gpu_attrs[] = {
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
-	&sensor_dev_attr_temp2_input.dev_attr.attr,
-	&sensor_dev_attr_temp3_input.dev_attr.attr,
 	&sensor_dev_attr_present_status.dev_attr.attr,
 	NULL
 };
