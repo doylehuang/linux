@@ -9,6 +9,7 @@
 #include <linux/of.h>
 
 #define PROPLENG I2C_SMBUS_BLOCK_MAX
+#define GPU_TEMP_MULTIPLIER (1000)
 
 struct g50_gpu_data {
 	struct i2c_client	*client;
@@ -21,6 +22,12 @@ struct g50_gpu_data {
 	char			gpu_part_number		[PROPLENG];
 	char			firmware_version	[PROPLENG];
 };
+
+static u8 g2_gpu_slave_address[] = {
+	0x4c, 0x4e, 0x4f
+};
+static u32 g2_gpu_present_status = 0;
+struct mutex	inspect_update_lock_gpu;
 
 /**
  * g50_gpu_recv - Read GPU Data register
@@ -68,7 +75,7 @@ static int g50_gpu_get_temperature(struct device *dev, u8 type)
 {
 	u8 writebuff[I2C_SMBUS_BLOCK_MAX] = {0};
 	u8 readbuff[I2C_SMBUS_BLOCK_MAX] = {0};
-	int ret = 0;
+	int ret = -1;
 
 	writebuff[0] = 0x02;
 	writebuff[1] = type;
@@ -82,18 +89,31 @@ static int g50_gpu_get_temperature(struct device *dev, u8 type)
 		goto abort;
 
 	ret = readbuff[1] + (readbuff[2] << 8) + (readbuff[3] << 16);
-
+	ret *= GPU_TEMP_MULTIPLIER;
 abort:
 	return ret;
 }
 
-static struct g50_gpu_data *g50_gpu_update_temperature(struct device *dev)
+static struct g50_gpu_data *g50_gpu_update_temperature(struct device *dev, ssize_t device_index)
 {
 	struct g50_gpu_data *data = dev_get_drvdata(dev);
+	struct i2c_client *client = data->client;
+	int ret;
+	if ((device_index < 0 ) || (device_index >= sizeof(g2_gpu_slave_address))) {
+		return data;
+	}
+	g2_gpu_present_status &= ~(1 << device_index);
 
+	mutex_lock(&inspect_update_lock_gpu);
 	mutex_lock(&data->update_lock);
-    data->temperature = g50_gpu_get_temperature(dev, 0x00);
+	client->addr = g2_gpu_slave_address[device_index];
+	ret = g50_gpu_get_temperature(dev, 0x00);
+	if (ret >= 0) {
+		data->temperature = ret;
+		g2_gpu_present_status |= (1 << device_index);
+	}
 	mutex_unlock(&data->update_lock);
+	mutex_unlock(&inspect_update_lock_gpu);
 	return data;
 }
 
@@ -166,13 +186,32 @@ static char *g50_gpu_update_firmware_version(struct device *dev)
 static ssize_t show_temp(struct device *dev, struct device_attribute *da,
 			 char *buf)
 {
-	struct g50_gpu_data *data = g50_gpu_update_temperature(dev);
+	struct g50_gpu_data *data = NULL;
+	ssize_t device_index = -1;
+
+	if (da != NULL && da->attr.name != NULL) {
+		sscanf(da->attr.name, "temp%d_input", &device_index);
+		device_index -= 1;
+	}
+
+	data = g50_gpu_update_temperature(dev, device_index);
 
 	if (IS_ERR(data))
 		return PTR_ERR(data);
 
 	return sprintf(buf, "%d\n", data->temperature);
 }
+
+static ssize_t show_present_status(struct device *dev, struct device_attribute *da,
+			 char *buf)
+{
+	ssize_t ret;
+	mutex_lock(&inspect_update_lock_gpu);
+	ret = sprintf(buf, "%d\n", g2_gpu_present_status);
+	mutex_unlock(&inspect_update_lock_gpu);
+	return ret;
+}
+
 
 static ssize_t show_string(struct device *dev, struct device_attribute *da,
 			   char *buf)
@@ -204,20 +243,17 @@ static ssize_t show_string(struct device *dev, struct device_attribute *da,
 	return sprintf(buf, "%s\n", data);
 }
 
-static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0);
-static SENSOR_DEVICE_ATTR(board_part_number, S_IRUGO, show_string, NULL, 1);
-static SENSOR_DEVICE_ATTR(serial_number, S_IRUGO, show_string, NULL, 2);
-static SENSOR_DEVICE_ATTR(marketing_name, S_IRUGO, show_string, NULL, 3);
-static SENSOR_DEVICE_ATTR(gpu_part_number, S_IRUGO, show_string, NULL, 4);
-static SENSOR_DEVICE_ATTR(firmware_version, S_IRUGO, show_string, NULL, 5);
+static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 0); //gpu slave address: 0x4c
+static SENSOR_DEVICE_ATTR(temp2_input, S_IRUGO, show_temp, NULL, 0); //gpu slave address: 0x4e
+static SENSOR_DEVICE_ATTR(temp3_input, S_IRUGO, show_temp, NULL, 0); //gpu slave address: 0x4f
+static SENSOR_DEVICE_ATTR(present_status, S_IRUGO, show_present_status, NULL, 0); //gpu slave address: 0x4f
+
 
 static struct attribute *g50_gpu_attrs[] = {
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
-	&sensor_dev_attr_board_part_number.dev_attr.attr,
-	&sensor_dev_attr_serial_number.dev_attr.attr,
-	&sensor_dev_attr_marketing_name.dev_attr.attr,
-	&sensor_dev_attr_gpu_part_number.dev_attr.attr,
-	&sensor_dev_attr_firmware_version.dev_attr.attr,
+	&sensor_dev_attr_temp2_input.dev_attr.attr,
+	&sensor_dev_attr_temp3_input.dev_attr.attr,
+	&sensor_dev_attr_present_status.dev_attr.attr,
 	NULL
 };
 ATTRIBUTE_GROUPS(g50_gpu);
@@ -234,6 +270,7 @@ g50_gpu_probe(struct i2c_client *client, const struct i2c_device_id *id)
 
 	data->client = client;
 	i2c_set_clientdata(client, data);
+	mutex_init(&inspect_update_lock_gpu);
 	mutex_init(&data->update_lock);
 
 	data->hwmon_dev = hwmon_device_register_with_groups(dev, client->name,
