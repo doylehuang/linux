@@ -2315,8 +2315,26 @@ struct dentry *d_hash_and_lookup(struct dentry *dir, struct qstr *name)
 	 * calculate the standard hash first, as the d_op->d_hash()
 	 * routine may choose to leave the hash value unchanged.
 	 */
+
+	if (name == NULL) {
+		printk(KERN_EMERG "%s, %d, name is NULL!! \n", __FUNCTION__, __LINE__);
+		return ERR_PTR(-ENOMEM);
+	}
+	if (dir == NULL) {
+		printk(KERN_EMERG "%s, %d, dir is NULL!! \n", __FUNCTION__, __LINE__);
+		return ERR_PTR(-ENOMEM);
+	}
 	name->hash = full_name_hash(dir, name->name, name->len);
 	if (dir->d_flags & DCACHE_OP_HASH) {
+		if (dir->d_op == NULL) {
+			printk(KERN_EMERG "%s, %d, dir->d_op is NULL!! \n", __FUNCTION__, __LINE__);
+			return ERR_PTR(-ENOMEM);
+		}
+		if (dir->d_op->d_hash == NULL) {
+			printk(KERN_EMERG "%s, %d, dir->d_op->d_hash is NULL!! \n", __FUNCTION__, __LINE__);
+			return ERR_PTR(-ENOMEM);
+		}
+
 		int err = dir->d_op->d_hash(dir, name);
 		if (unlikely(err < 0))
 			return ERR_PTR(err);
