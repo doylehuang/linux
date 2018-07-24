@@ -100,7 +100,6 @@ static struct g50_gpu_data *g50_gpu_update_temperature(struct device *dev, ssize
 	struct i2c_client *client = data->client;
 	int ret;
 
-	mutex_lock(&inspect_update_lock_gpu);
 	mutex_lock(&data->update_lock);
 	data->g2_gpu_present_status = 0;
 	client->addr = g2_gpu_slave_address[device_index];
@@ -112,7 +111,6 @@ static struct g50_gpu_data *g50_gpu_update_temperature(struct device *dev, ssize
 		data->temperature = 0;
 	}
 	mutex_unlock(&data->update_lock);
-	mutex_unlock(&inspect_update_lock_gpu);
 	return data;
 }
 
@@ -182,27 +180,33 @@ static char *g50_gpu_update_firmware_version(struct device *dev)
 	return g50_gpu_get_cpu_info(dev, data->firmware_version, 0x08, 14);
 }
 
-static ssize_t show_temp2(struct device *dev, struct device_attribute *da,
-			 char *buf)
+static struct g50_gpu_data *update_gpu(struct device *dev, struct device_attribute *da)
 {
 	struct g50_gpu_data *data = NULL;
 	ssize_t device_index;
 	struct g50_gpu_data *data_present = dev_get_drvdata(dev);
 
 	if (IS_ERR(data_present))
-		return PTR_ERR(data_present);
+		return data_present;
 
+	mutex_lock(&inspect_update_lock_gpu);
 	if (data_present->g2_gpu_present_status == 0) {
 		for (device_index = 0; device_index < sizeof(g2_gpu_slave_address); device_index++) {
 			data = g50_gpu_update_temperature(dev, device_index);
-			if (IS_ERR(data))
-				return PTR_ERR(data);
 			if (data->g2_gpu_present_status != 0)
 				break;
 		}
 	} else {
 		data = g50_gpu_update_temperature(dev, (data_present->g2_gpu_present_status - 1));
 	}
+	mutex_unlock(&inspect_update_lock_gpu);
+	return data;
+}
+
+static ssize_t show_temp2(struct device *dev, struct device_attribute *da,
+			 char *buf)
+{
+	struct g50_gpu_data *data = update_gpu(dev, da);
 
 	if (IS_ERR(data))
 		return PTR_ERR(data);
@@ -224,13 +228,11 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
 static ssize_t show_present_status(struct device *dev, struct device_attribute *da,
 			 char *buf)
 {
-	struct g50_gpu_data *data_present = dev_get_drvdata(dev);
+	struct g50_gpu_data *data_present = update_gpu(dev, da);
 	ssize_t ret = 0;
 	if (IS_ERR(data_present))
 		return PTR_ERR(data_present);
-	mutex_lock(&inspect_update_lock_gpu);
 	ret = sprintf(buf, "%d\n", data_present->g2_gpu_present_status);
-	mutex_unlock(&inspect_update_lock_gpu);
 	return ret;
 }
 
