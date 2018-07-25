@@ -21,8 +21,10 @@ struct hdd_expander_data {
 #define PRESENT_RESPONSE_DATA_SIZE (5)
 #define REQUEST_FUNCTION_ID (0x0400)
 #define MULTIPLIER (1000)
+#define MAX_HDD_EXPANDER_SIZE (24)
 
 struct mutex		g_inspect_update_lock;
+static int g_hdd_expander_record[MAX_HDD_EXPANDER_SIZE] = {0};
 
 /**
  * hdd_expander_send - Send to HDD Expander Command register
@@ -176,6 +178,8 @@ static ssize_t show_temp(struct device *dev, struct device_attribute *da,
 	if (IS_ERR(data))
 		return PTR_ERR(data);
 
+	g_hdd_expander_record[device_index] = data->temperature;
+
 	return sprintf(buf, "%d\n", data->temperature);
 }
 
@@ -195,6 +199,16 @@ static ssize_t show_present_status(struct device *dev, struct device_attribute *
 	return sprintf(buf, "%ld\n", data->present_status);
 }
 
+static ssize_t show_max_temp(struct device *dev, struct device_attribute *da,
+			 char *buf)
+{
+	int i;
+	int max_temp = 0;
+	for (i = 0; i < MAX_HDD_EXPANDER_SIZE; i++)
+		if (max_temp < g_hdd_expander_record[i])
+			max_temp = g_hdd_expander_record[i];
+	return sprintf(buf, "%d\n", max_temp);
+}
 
 static SENSOR_DEVICE_ATTR(temp0_input, S_IRUGO, show_temp, NULL, 0);
 static SENSOR_DEVICE_ATTR(temp1_input, S_IRUGO, show_temp, NULL, 1);
@@ -221,6 +235,8 @@ static SENSOR_DEVICE_ATTR(temp21_input, S_IRUGO, show_temp, NULL, 21);
 static SENSOR_DEVICE_ATTR(temp22_input, S_IRUGO, show_temp, NULL, 22);
 static SENSOR_DEVICE_ATTR(temp23_input, S_IRUGO, show_temp, NULL, 23);
 static SENSOR_DEVICE_ATTR(present_status, S_IRUGO, show_present_status, NULL, 23);
+static SENSOR_DEVICE_ATTR(max_temp, S_IRUGO, show_max_temp, NULL, 0);
+
 static struct attribute *hdd_expander_attrs[] = {
 	&sensor_dev_attr_temp0_input.dev_attr.attr,
 	&sensor_dev_attr_temp1_input.dev_attr.attr,
@@ -247,6 +263,7 @@ static struct attribute *hdd_expander_attrs[] = {
 	&sensor_dev_attr_temp22_input.dev_attr.attr,
 	&sensor_dev_attr_temp23_input.dev_attr.attr,
 	&sensor_dev_attr_present_status.dev_attr.attr,
+	&sensor_dev_attr_max_temp.dev_attr.attr,
 	NULL
 };
 ATTRIBUTE_GROUPS(hdd_expander);
