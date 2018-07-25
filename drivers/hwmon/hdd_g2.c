@@ -8,11 +8,19 @@
 #include <linux/mutex.h>
 #include <linux/of.h>
 
+#define MAX_HDD_RECORD_COUNT (10)
+#define MAX_HDD_TEMP_COUNT (5)
+
 struct hdd_g2_data {
 	struct i2c_client	*client;
 	struct device		*hwmon_dev;
 	struct mutex		update_lock;
 	int			temperature;
+};
+
+struct hdd_record_data {
+	u8 client_addr;
+	int record_temp[MAX_HDD_TEMP_COUNT];
 };
 
 #define HDD_MICRON_SLAVE_ADDR (0x53)
@@ -23,11 +31,54 @@ struct hdd_g2_data {
 #define HDD_PM963_I2C_RETRY_DELAY_MS (10)
 
 
+
 struct mutex		inspect_update_lock;
+static struct hdd_record_data  g_hdd_record[MAX_HDD_RECORD_COUNT] = {0};
+static int g_hdd_record_size = 0;
 
 /**
  * hdd_g2_i2c_access - Send to I2C Command register
  */
+static void update_hdd_record(struct hdd_g2_data *data, int record_temp_index, int temp)
+{
+	struct i2c_client *client = data->client;
+	int i = 0;
+	int record_index = -1;
+	for (i = 0; i < g_hdd_record_size; i++) {
+		if (g_hdd_record[i].client_addr == client->addr) {
+			record_index = i;
+			break;
+		}
+	}
+	if ((record_index == -1) && (g_hdd_record_size < MAX_HDD_RECORD_COUNT)) {
+		record_index = g_hdd_record_size;
+		g_hdd_record[record_index].client_addr = client->addr;
+		g_hdd_record_size+=1;
+	}
+	if ((record_index != -1) && (record_temp_index < MAX_HDD_TEMP_COUNT))
+		g_hdd_record[record_index].record_temp[record_temp_index] = temp;
+}
+
+static int get_hdd_max_temp_record(struct hdd_g2_data *data)
+{
+	struct i2c_client *client = data->client;
+	int i = 0;
+	int max_temp = 0;
+	int record_index = -1;
+	for (i = 0; i < g_hdd_record_size; i++) {
+		if (g_hdd_record[i].client_addr == client->addr) {
+			record_index = i;
+			break;
+		}
+	}
+	if (record_index != -1) {
+		for (i = 0; i < MAX_HDD_TEMP_COUNT; i++)
+			if (max_temp < g_hdd_record[record_index].record_temp[i])
+				max_temp = g_hdd_record[record_index].record_temp[i];
+	}
+	return max_temp;
+}
+
 static s32 hdd_g2_i2c_access(struct device *dev, struct i2c_msg *hdd_i2c_msg, int hdd_i2c_msg_num)
 {
 	struct hdd_g2_data *data = dev_get_drvdata(dev);
@@ -139,6 +190,8 @@ static ssize_t show_hdd_micron_temp(struct device *dev, struct device_attribute 
 	if (IS_ERR(data))
 		return PTR_ERR(data);
 
+	update_hdd_record(data, 0, data->temperature);
+
 	return sprintf(buf, "%d\n", data->temperature);
 }
 
@@ -229,8 +282,20 @@ static ssize_t show_hdd_pm963_temp(struct device *dev, struct device_attribute *
 	if (IS_ERR(data))
 		return PTR_ERR(data);
 
+	update_hdd_record(data, device_index+1, data->temperature);
+
 	return sprintf(buf, "%d\n", data->temperature);
 }
+
+static ssize_t show_hdd_max_temp(struct device *dev, struct device_attribute *da,
+			 char *buf)
+{
+	struct hdd_g2_data *data = dev_get_drvdata(dev);
+	if (IS_ERR(data))
+		return PTR_ERR(data);
+	return sprintf(buf, "%d\n", get_hdd_max_temp_record(data));
+}
+
 
 
 static SENSOR_DEVICE_ATTR(micron_temp1_input, S_IRUGO, show_hdd_micron_temp, NULL, 0);
@@ -238,6 +303,8 @@ static SENSOR_DEVICE_ATTR(pm963_temp1_input, S_IRUGO, show_hdd_pm963_temp, NULL,
 static SENSOR_DEVICE_ATTR(pm963_temp2_input, S_IRUGO, show_hdd_pm963_temp, NULL, 0);
 static SENSOR_DEVICE_ATTR(pm963_temp3_input, S_IRUGO, show_hdd_pm963_temp, NULL, 0);
 static SENSOR_DEVICE_ATTR(pm963_temp4_input, S_IRUGO, show_hdd_pm963_temp, NULL, 0);
+static SENSOR_DEVICE_ATTR(hdd_max_temp, S_IRUGO, show_hdd_max_temp, NULL, 0);
+
 
 
 static struct attribute *hdd_g2_attrs[] = {
@@ -246,6 +313,7 @@ static struct attribute *hdd_g2_attrs[] = {
 	&sensor_dev_attr_pm963_temp2_input.dev_attr.attr,
 	&sensor_dev_attr_pm963_temp3_input.dev_attr.attr,
 	&sensor_dev_attr_pm963_temp4_input.dev_attr.attr,
+	&sensor_dev_attr_hdd_max_temp.dev_attr.attr,
 	NULL
 };
 ATTRIBUTE_GROUPS(hdd_g2);
